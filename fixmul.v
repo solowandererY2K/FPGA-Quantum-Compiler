@@ -23,7 +23,12 @@ wire sign = (a[18] ^ b[18]);
 wire [35:0] full_result = abs_a * abs_b;
 
 // Take the high-order bits
-assign result[17:0] = sign ? -(full_result[35:18]) : full_result[35:18];
-assign result[18]   = sign;
+wire [18:0] unrounded_result;
+assign unrounded_result[17:0] = sign ? -(full_result[35:18]) : full_result[35:18];
+assign unrounded_result[18]   = sign;
+
+// Perform rounding
+// TODO: prevent this from overflowing!
+assign result = full_result[17] ? unrounded_result + 18'd1 : unrounded_result;
 
 endmodule // fixmul
