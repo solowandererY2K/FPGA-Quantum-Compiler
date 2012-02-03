@@ -151,6 +151,17 @@ module de1_d5m
    assign clk = CLOCK_25;
    assign clk2 = CLOCK_50;
 
+   // UART sender
+   // 50,000,000 Hz / 115,200 baud rate = 434.028
+   // so we need a 9 bit counter.  Thus, the parameters
+   // are #(434,9).
+   uart_sender #(434,9) sender(
+     .clk(clk2),
+     .reset(reset),
+     .data_to_send(8'd65),
+     .data_to_send_ready(1'b1),
+     .txd(UART_TXD));
+
    // Show a test pattern.
    reg [24:0] counter;
    assign LEDG = counter[24:17];

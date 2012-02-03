@@ -340,6 +340,7 @@ set_location_assignment PIN_W7 -to SRAM_UB_N
 set_location_assignment PIN_AA10 -to SRAM_WE_N
 set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
 set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
+set_global_assignment -name SYSTEMVERILOG_FILE uart_sender.sv
 set_global_assignment -name SYSTEMVERILOG_FILE reset_delay.sv
 set_global_assignment -name SYSTEMVERILOG_FILE de1_d5m.sv
 set_global_assignment -name SYSTEMVERILOG_FILE complex_matrix_multiplier_top.sv
