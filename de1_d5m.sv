@@ -107,35 +107,6 @@ module de1_d5m
    inout   [35:0]  GPIO_1                 //  GPIO Connection 1
    );
    
-   ////////////////////////    For TFT LCD Module  ///////////////////////
-   wire [7:0] 	   LCM_DATA;       //  LCM Data 8 Bits
-   wire            LCM_GRST;       //  LCM Global Reset    
-   wire            LCM_SHDB;       //  LCM Sleep Mode
-   wire            LCM_DCLK;       //  LCM Clcok
-   wire            LCM_HSYNC;      //  LCM HSYNC
-   wire            LCM_VSYNC;      //  LCM VSYNC
-   wire            LCM_SCLK;       //  LCM I2C Clock
-   wire            LCM_SDAT;       //  LCM I2C Data
-   wire            LCM_SCEN;       //  LCM I2C Enable
-   wire            CLK_18;
-   
-   assign  GPIO_0[18]  =   LCM_DATA[6];
-   assign  GPIO_0[19]  =   LCM_DATA[7];
-   assign  GPIO_0[20]  =   LCM_DATA[4];
-   assign  GPIO_0[21]  =   LCM_DATA[5];
-   assign  GPIO_0[22]  =   LCM_DATA[2];
-   assign  GPIO_0[23]  =   LCM_DATA[3];
-   assign  GPIO_0[24]  =   LCM_DATA[0];
-   assign  GPIO_0[25]  =   LCM_DATA[1];
-   assign  GPIO_0[26]  =   LCM_VSYNC;
-   assign  GPIO_0[28]  =   LCM_SCLK;
-   assign  GPIO_0[29]  =   LCM_DCLK;
-   assign  GPIO_0[30]  =   LCM_GRST;
-   assign  GPIO_0[31]  =   LCM_SHDB;
-   assign  GPIO_0[33]  =   LCM_SCEN;
-   assign  GPIO_0[34]  =   LCM_SDAT;
-   assign  GPIO_0[35]  =   LCM_HSYNC;
-   
    /***************************************************************************/
    /*****************************END of Board Interface************************/
    /***************************************************************************/
@@ -147,16 +118,6 @@ module de1_d5m
    assign  AUD_ADCLRCK =   1'bz;
    assign  AUD_DACLRCK =   1'bz;
    assign  AUD_BCLK    =   1'bz;
-
-   // Set unused SRAM pins to default value
-   assign SRAM_UB_N = 1'b0;
-   assign SRAM_LB_N = 1'b0;
-   assign SRAM_CE_N = 1'b0;
-   assign SRAM_OE_N = 1'b0;
-
-   // Assign default values for LCM pins
-//   assign LCM_SHDB  =   1'b1;
-//   assign LCM_GRST  =   1'b1;
 
    parameter SIMULATE=0;    // Top level sets to 1 for simulation
    
@@ -182,113 +143,23 @@ module de1_d5m
    end
    wire 	 CLOCK_25 = clkCnt[0];
    wire 	 CLOCK_12_5 = clkCnt[1];
-   
-/* -----\/----- EXCLUDED -----\/-----
-   mypll pll36
-	 (// Outputs
-	  .c0								(CLOCK_36),
-	  // Inputs
-	  .inclk0							(CLOCK_50));
-   reg 		 CLOCK_18;
-   generate if (SIMULATE != 0)
-	  initial CLOCK_18 = 0;
-   endgenerate
-   always @(posedge CLOCK_36) begin
-	  CLOCK_18 = CLOCK_18 + 1;
-   end
- -----/\----- EXCLUDED -----/\----- */
-   
-   // Use a PLL to generate the 18MHz clock for the LCM
-   LCM_PLL   p0  
-	 (.inclk0(CLOCK_27[0]),
-	  .c0(CLK_18));
-   
+
    /***************************************************************************/
    /*****************************END of Standard Logic ************************/
    /***************************************************************************/   
-   
+
    assign clk = CLOCK_25;
    assign clk2 = CLOCK_50;
-/* -----\/----- EXCLUDED -----\/-----
-   assign clk = CLOCK_18;
-   assign clk2 = CLOCK_36;
- -----/\----- EXCLUDED -----/\----- */
 
-   localparam WIDTH = 16;
-   localparam ADDRBITS = 18;
-   
-   wire [7:0] red, blue, green;
-   wire [8:0] colAddrIn;
-   wire [7:0] lineAddrIn;
-   wire [15:0] RGBIn;
-   wire 	  takingPixelIn, validPixelIn, newFrameIn;
-   wire 	  takingPixelOut, validPixelOut, newFrameOut;
-   
-   patternGen #(.SIMULATE(SIMULATE)) pg
-	 (// Outputs
-	  .validPixel						(validPixelIn),
-	  .newFrame							(newFrameIn),
-	  .colAddr							(colAddrIn[8:0]),
-	  .lineAddr							(lineAddrIn[7:0]),
-	  .RGB								(RGBIn[15:0]),
-	  // Inputs
-	  .clk								(clk),
-	  .reset							(reset),
-	  .frameReady                       (frameReadyIn),
-	  .takingPixel						(takingPixelIn));
+   // Show a test pattern.
+   reg [24:0] counter;
+   assign LEDG = counter[24:17];
 
-   frameBuffer #(.SIMULATE(SIMULATE)) fb
-	 (// Outputs
-	  .takingPixelIn		(takingPixelIn),
-	  .frameReadyIn			(frameReadyIn),
-	  .red					(red[7:0]),
-	  .green				(green[7:0]),
-	  .blue					(blue[7:0]),
-	  .frameReadyOut		(frameReadyOut),
-	  .SRAM_ADDR			(SRAM_ADDR[17:0]),
-	  .SRAM_WE_N			(SRAM_WE_N),
-	  // Inouts
-	  .SRAM_DQ				(SRAM_DQ[15:0]),
-	  // Inputs
-	  .clk					(clk),
-	  .clk2					(clk2),
-	  .reset				(reset),
-	  .lineAddrIn			(lineAddrIn[7:0]),
-	  .colAddrIn			(colAddrIn[8:0]),
-	  .RGBIn				(RGBIn[15:0]),
-	  .validPixelIn			(validPixelIn),
-	  .newFrameIn			(newFrameIn),
-	  .takingPixelOut		(takingPixelOut),
-	  .newFrameOut			(newFrameOut));
-
-   display #(.SIMULATE(SIMULATE)) display
-     (  //  Host Side
-        .red(red),
-        .green(green),
-        .blue(blue),
-        //  LCM Side
-        .LCM_DATA(LCM_DATA),
-        .LCM_VSYNC(LCM_VSYNC),
-        .LCM_HSYNC(LCM_HSYNC),
-        .LCM_DCLK(LCM_DCLK),
-        .LCM_SHDB(LCM_SHDB),
-        .LCM_GRST(LCM_GRST),
-        //  Control Signals
-        .takingPixel(takingPixelOut),
-        .newFrame(newFrameOut),
-        .CLK_18(clk),
-        .reset(reset),      // Connect 
-        .test(SW[7]));     // Optional test input connected to SW[7]
-   
-   generate if (SIMULATE==0) 
-	 I2S_LCM_Config   lcm_config
-	   (  //  Host Side
-		  .iCLK(CLOCK_50),
-		  .iRST_N(KEY[0]),
-		  //  I2C Side
-		  .I2S_SCLK(LCM_SCLK),
-		  .I2S_SDAT(LCM_SDAT),
-		  .I2S_SCEN(LCM_SCEN) );
-   endgenerate
-
+   always @(posedge CLOCK_25) begin
+     if (reset) begin
+       counter <= 1;
+     end else begin
+       counter <= counter + 1;
+     end
+   end
 endmodule // de1_d5m
