@@ -35,7 +35,7 @@ module matrix_multiplier (
       for (c = 0; c < 2; c = c + 1) begin:C
         for (i = 0; i < 2; i = i + 1) begin:I
           // Do calculation
-          fixmul(mtx_a_buf[r][i], mtx_b_buf[i][c], w_mult_results[r][c][i]);
+          fixmul mul$r$c$i(mtx_a_buf[r][i], mtx_b_buf[i][c], w_mult_results[r][c][i]);
 
           // Copy over multiplication results
           always @(posedge clk) begin
