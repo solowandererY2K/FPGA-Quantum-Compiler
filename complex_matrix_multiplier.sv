@@ -79,6 +79,8 @@ module complex_matrix_multiplier (
     end else begin
       completed <= mult_completed;
       mult_completed <= ready;
+      mtx_a_buf <= mtx_a;
+      mtx_b_buf <= mtx_b;
     end
   end
 endmodule // complex_matrix_multiplier

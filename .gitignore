@@ -18,3 +18,4 @@
 *.bak
 undo_redo.txt
 /uploads
+filters.xml
