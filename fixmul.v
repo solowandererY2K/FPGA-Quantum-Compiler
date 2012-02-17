@@ -23,14 +23,17 @@ wire sign = (a[IN_BITS-1] ^ b[IN_BITS-1]);
 wire [35:0] full_result = abs_a * abs_b;
 
 // Take the high-order bits
+// NOTE: We throw out the highest bit from the multiplication because the
+// number should never be >= 2 or <= -2.
+// TODO: get rid of some of this complex logic...
 wire [OUT_BITS-1:0] unrounded_result;
-assign unrounded_result[OUT_BITS-2:0] = sign ?
-                                        -(full_result[35:37-OUT_BITS]) :
-                                        full_result[35:37-OUT_BITS];
-assign unrounded_result[OUT_BITS-1]   = sign;
+assign unrounded_result[OUT_BITS-2:0] = (sign && full_result[34:36-OUT_BITS] != 0) ?
+                                        -(full_result[34:36-OUT_BITS]) :
+                                        full_result[34:36-OUT_BITS];
+// Don't assign a sign bit to a zero result.
+assign unrounded_result[OUT_BITS-1]   = sign && full_result[34:36-OUT_BITS] != 0;
 
-// Perform rounding
-// TODO: prevent this from overflowing!
-assign result = full_result[35] ? unrounded_result + 1 : unrounded_result;
+// TODO: Perform rounding
+assign result = unrounded_result;
 
 endmodule // fixmul

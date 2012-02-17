@@ -22,20 +22,22 @@ module complex_matrix_multipler_top_tb();
   // Random operands to test
   const int signed operands[0:1][0:1][0:1][0:1] = {
     { // Matrix A
-      {{104176, 159610}, { -49594, 117945}},
-      {{236953,  16111}, {-229004,  99439}}
+      {{ 52088,  79805}, { -24797,  58972}},
+      {{118476,   8055}, {-114502,  49719}}
     },
     { // Matrix B
-      {{ 195433,  46169}, {-83420, 213816}},
-      {{-143459, 171112}, { -7539, 107609}}
+      {{  97716,  23084}, {-41710, 106908}},
+      {{ -71729,  85556}, { -3769,  53804}}
     }
   };
 
   // Expected result
-  const int signed expected_result[1:0][1:0][1:0] = {
-    {{  -293,   40422}, {-210325, 10428}},
-    {{234230, -150155}, {-122778, 91277}}
-  };
+  // TODO: actually use these, and make them match what they're supposed to
+  // be.
+  // const int signed expected_result[1:0][1:0][1:0] = {
+  //   {{  -293,   40422}, {-210325, 10428}},
+  //   {{234230, -150155}, {-122778, 91277}}
+  // };
 
   integer _operand, _row, _col, _imag;
 
