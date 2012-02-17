@@ -1,6 +1,9 @@
 /* Table for storing gate matrices.
+ * On each clock cycle, it loads a real or an imaginary component.
+ *
+ * TODO: consider using multiple M4K blocks to parallelize the load process.
  */
-module gate_matrix_table(clk, reset, gate, result, ready, done);
+module gate_matrix_table(clk, reset, gate, result, ready, done_pulse);
 
   input clk, reset;
 
@@ -11,7 +14,7 @@ module gate_matrix_table(clk, reset, gate, result, ready, done);
   // To client
   // TODO: register needed?
   output reg signed [18:0] result[0:1][0:1][0:1];
-  output reg done;
+  reg done;
 
   // Result index
   reg [2:0] index;
@@ -31,11 +34,14 @@ module gate_matrix_table(clk, reset, gate, result, ready, done);
     .q ( dataout_sig )
   );
 
+  output reg done_pulse;
+
   always @(posedge clk) begin
+    done_pulse <= 0;
     if (reset || init_busy_sig) begin
       index <= 0;
       last_index <= 0;
-      done  <= 1;
+      done <= 1;
     end else begin
       if (done) begin
         index <= 0;
@@ -48,6 +54,7 @@ module gate_matrix_table(clk, reset, gate, result, ready, done);
         index                     <= index + 1;
         last_index                <= index;
         done                      <= (last_index == 3'b111);
+        done_pulse                <= (last_index == 3'b111);
       end
     end
   end

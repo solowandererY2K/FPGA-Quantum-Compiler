@@ -1,4 +1,5 @@
 /* Multiplies a sequence of matrices to obtain a matrix product.
+ *
  */
 module sequence_multiplier(
   clk,
@@ -7,16 +8,17 @@ module sequence_multiplier(
   seq_index,
   seq_gate,
   ready,
-  most_significant,
+  first,
+  available,
 
   result_mtx,
   done,
 
-  mtx_a,
-  mtx_b,
-  ready,
+  multiplier_a,
+  multiplier_b,
+  multiplier_ready,
   multiplier_done,
-  result
+  multiplier_result
 );
   ////////////////////////////// PARAMETERS /////////////////////////////////
 
@@ -26,7 +28,7 @@ module sequence_multiplier(
 
   // Number of bits in a number.
   // In the future, it will be changed to 36 for better precision.
-  parameter NUMERIC_BITS = 18;
+  parameter NUMERIC_BITS = 19;
 
   // Highest sequence index to be cached in the matrix result cache.
   parameter HIGHEST_SEQ_INDEX = 4;
@@ -40,66 +42,157 @@ module sequence_multiplier(
   input [SEQ_INDEX_BITS-1:0] seq_index;
   input [4:0] seq_gate;
   input ready; // high when Sequence Generator is ready.
-  output available; // high when Sequence Multiplier is done multiplying.
+  input first; // high when this gate is the first in the sequence.
+               // The gate will be loaded directly into the matrix cache,
+               // instead of multiplying it with a prior gate.
+  output reg available; // high when Sequence Multiplier is ready for the next
+                    // gate.
 
   // To the Solution Checker and the Duplicate Checker
-  output [NUMERIC_BITS-1:0] result_mtx [1:0][1:0][1:0];
-  output reg done;
+  output signed [NUMERIC_BITS-1:0] result_mtx [0:1][0:1][0:1];
+  output reg done; // high when a result has been calculated for sequence
+                   // item 0.
 
   // To Multiplier
-  output [NUMERIC_BITS-1:0] multiplier_a [1:0][1:0][1:0];
-  output [NUMERIC_BITS-1:0] multiplier_b [1:0][1:0][1:0];
-  output reg ready;
+  output signed [NUMERIC_BITS-1:0] multiplier_a [0:1][0:1][0:1];
+  output signed [NUMERIC_BITS-1:0] multiplier_b [0:1][0:1][0:1];
+  output reg multiplier_ready;
   input multiplier_done;
-  input [NUMERIC_BITS-1:0] multiplier_result [1:0][1:0][1:0];
+  input signed [NUMERIC_BITS-1:0] multiplier_result [0:1][0:1][0:1];
 
   ///////////////////////////////// CODE ////////////////////////////////////
 
-  wire [18:0] dataout;
+  assign done = (available && seq_index == 0);
 
-  gate_table (
-    .clock(clk),
-    .init(reset),
-    .dataout,
-    .init_busy,
-    .ram_address,
-    .ram_wren);
+  // TODO: parameterize this module by number of bits in our fixed point
+  // representation.
+  wire signed [NUMERIC_BITS-1:0] gate_mtx[0:1][0:1][0:1];
+  reg  gate_ready;
+  wire gate_done;
+  reg [SEQ_INDEX_BITS-1:0] gate_to_read;
+  gate_matrix_table gmt (
+    .clk(clk),
+    .reset(reset),
+    .gate(gate_to_read),
+    .result(gate_mtx),
+    .ready(gate_ready),
+    .done_pulse(gate_done)
+  );
 
   // Cached Results
   // The first index corresponds to the sequence index we multiplied a
   // previous matrix by to obtain the result stored in that location.
-  // TODO: use a memory block to store this huge cache
-  reg [NUMERIC_BITS-1:0] cache_mtx [HIGHEST_SEQ_INDEX:0][1:0][1:0][1:0];
+  // For example, cache_mtx[0] = cache_mtx[1] * gate_sequence[0]
+  // TODO: use a memory block to store this huge cache.
+  reg signed [NUMERIC_BITS-1:0] cache_mtx [HIGHEST_SEQ_INDEX:0][0:1][0:1][0:1];
   reg [SEQ_INDEX_BITS-1:0] cache_gates [HIGHEST_SEQ_INDEX:0];
 
-  assign result_mtx = cache_mtx[0];
-  assign available = multiplier_done;
+  // Stores the index of the highest sequence index to have a result stored
+  // in the cache.
+  // This prevents the system from reloading a cached gate when it doesn't
+  // have to.
+  reg [SEQ_INDEX_BITS-1:0] cache_first;
 
+  assign result_mtx = cache_mtx[0];
+
+  // TODO: check for index out of bounds
+  assign multiplier_a = cache_mtx[seq_index + 1];
+  assign multiplier_b = gate_mtx;
+
+  // Multiplier state
+  reg [1:0] state;
+  localparam WAITING = 2'd0,
+             READING_GATE = 2'd1,
+             MULTIPLYING = 2'd2;
+
+
+  // On reset, indicate that all cache contents are invalid.
   genvar i;
   generate
-    always @(posedge clk) begin
-      if (reset) begin
-        for (i = 0; i < HIGHEST_SEQ_INDEX; i = i + 1) begin:I
-          cache_gates[i] <= HIGHEST_SEQ_INDEX + 1;
-        end
-      end else begin
-        if (cache_gates[seq_index] == seq_gate):
-          // Skip because we have this already.
-          done <= 1;
-        end else begin
-          // Begin reading matrix from memory.
-          // We'll also send data to the Multiplier.
-        end
-
-        if (multiplier_done) begin
-          // Store the multiplier result in the sequence cache.
-          cache_mtx[seq_index] <= multiplier_result;
-          done <= 1;
-        end
+    for (i = 0; i < HIGHEST_SEQ_INDEX; i = i + 1) begin:I
+      always @(posedge clk) begin
+        if (reset) cache_gates[i] <= HIGHEST_SEQ_INDEX + 1;
       end
-
-      // Default assignment for done.
-      done <= 0;
     end
   endgenerate
+
+  always @(posedge clk) begin
+    if (reset) begin
+      cache_first      <= HIGHEST_SEQ_INDEX + 1;
+      gate_to_read     <= HIGHEST_SEQ_INDEX + 1;
+      multiplier_ready <= 1'b0;
+      gate_ready       <= 1'b0;
+      state            <= WAITING;
+    end else begin
+      case (state)
+        WAITING: begin
+          if (ready) begin
+            // Check for a cached value
+            if (cache_gates[seq_index] == seq_gate &&
+              (!first || first && cache_first == seq_index)) begin
+
+              // Skip because we have this result already.
+              available <= 1'b1;
+            end else begin
+              // Update the cache gate
+              cache_gates[seq_index] <= seq_gate;
+
+              // Increase cache_first if possible.
+              // TODO: think about the implications of a non-decreasing
+              // cache_first.
+              if (first && cache_first < seq_index) begin
+                cache_first <= seq_index;
+              end
+
+              // See if we need to load a gate.
+              if (gate_to_read != seq_gate) begin
+                state        <= READING_GATE;
+                gate_ready   <= 1'b1;
+                gate_to_read <= seq_index;
+              end else begin
+                // Skip multiplying if this matrix is the first.
+                if (first) begin
+                  state                <= WAITING;
+                  available            <= 1'b1;
+                  cache_mtx[seq_index] <= gate_mtx;
+                end else begin
+                  // We've already loaded the gate, so start multiplying.
+                  state            <= MULTIPLYING;
+                  multiplier_ready <= 1'b1;
+                end
+              end
+            end
+          end
+        end
+
+        READING_GATE: begin
+          gate_ready <= 1'b0;
+          if (gate_done) begin
+            // Skip multiplying if this matrix is the first.
+            if (first) begin
+              state                <= WAITING;
+              available            <= 1'b1;
+              cache_mtx[seq_index] <= gate_mtx;
+            end else begin
+              state            <= MULTIPLYING;
+              multiplier_ready <= 1'b1;
+            end
+          end
+        end
+
+        MULTIPLYING: begin
+          multiplier_ready <= 1'b0;
+          if (multiplier_done) begin
+            // Store the multiplier result in the sequence cache.
+            state                <= WAITING;
+            available            <= 1'b1;
+            cache_mtx[seq_index] <= multiplier_result;
+          end
+        end
+      endcase
+    end
+
+    // Default assignment for available.
+    available <= 0;
+  end
 endmodule
