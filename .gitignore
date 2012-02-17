@@ -19,3 +19,8 @@
 undo_redo.txt
 /uploads
 filters.xml
+*.cmp
+*.inc
+*_inst.v
+*.jpg
+*.html

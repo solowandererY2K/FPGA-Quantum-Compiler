@@ -47,9 +47,59 @@ module sequence_multiplier(
   output reg done;
 
   // To Multiplier
-  output [NUMERIC_BITS-1:0] mtx_a [1:0][1:0][1:0];
-  output [NUMERIC_BITS-1:0] mtx_b [1:0][1:0][1:0];
-  output ready;
+  output [NUMERIC_BITS-1:0] multiplier_a [1:0][1:0][1:0];
+  output [NUMERIC_BITS-1:0] multiplier_b [1:0][1:0][1:0];
+  output reg ready;
   input multiplier_done;
-  input [NUMERIC_BITS-1:0] result [1:0][1:0][1:0];
+  input [NUMERIC_BITS-1:0] multiplier_result [1:0][1:0][1:0];
+
+  ///////////////////////////////// CODE ////////////////////////////////////
+
+  wire [18:0] dataout;
+
+  gate_table (
+    .clock(clk),
+    .init(reset),
+    .dataout,
+    .init_busy,
+    .ram_address,
+    .ram_wren);
+
+  // Cached Results
+  // The first index corresponds to the sequence index we multiplied a
+  // previous matrix by to obtain the result stored in that location.
+  // TODO: use a memory block to store this huge cache
+  reg [NUMERIC_BITS-1:0] cache_mtx [HIGHEST_SEQ_INDEX:0][1:0][1:0][1:0];
+  reg [SEQ_INDEX_BITS-1:0] cache_gates [HIGHEST_SEQ_INDEX:0];
+
+  assign result_mtx = cache_mtx[0];
+  assign available = multiplier_done;
+
+  genvar i;
+  generate
+    always @(posedge clk) begin
+      if (reset) begin
+        for (i = 0; i < HIGHEST_SEQ_INDEX; i = i + 1) begin:I
+          cache_gates[i] <= HIGHEST_SEQ_INDEX + 1;
+        end
+      end else begin
+        if (cache_gates[seq_index] == seq_gate):
+          // Skip because we have this already.
+          done <= 1;
+        end else begin
+          // Begin reading matrix from memory.
+          // We'll also send data to the Multiplier.
+        end
+
+        if (multiplier_done) begin
+          // Store the multiplier result in the sequence cache.
+          cache_mtx[seq_index] <= multiplier_result;
+          done <= 1;
+        end
+      end
+
+      // Default assignment for done.
+      done <= 0;
+    end
+  endgenerate
 endmodule
