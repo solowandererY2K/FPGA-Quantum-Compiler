@@ -124,6 +124,7 @@ module sequence_multiplier(
       multiplier_ready <= 1'b0;
       gate_ready       <= 1'b0;
       state            <= WAITING;
+      available        <= 1'b1;
     end else begin
       case (state)
         WAITING: begin
@@ -192,8 +193,5 @@ module sequence_multiplier(
         end
       endcase
     end
-
-    // Default assignment for available.
-    available <= 0;
   end
 endmodule
