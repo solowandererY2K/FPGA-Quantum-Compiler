@@ -1,6 +1,7 @@
 /* Multiplies a sequence of matrices to obtain a matrix product.
  *
  */
+`timescale 1ns / 1ns
 module sequence_multiplier(
   clk,
   reset,

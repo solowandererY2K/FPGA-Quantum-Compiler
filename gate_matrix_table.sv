@@ -3,6 +3,7 @@
  *
  * TODO: consider using multiple M4K blocks to parallelize the load process.
  */
+`timescale 1ns / 1ns
 module gate_matrix_table(clk, reset, gate, result, ready, done_pulse);
 
   input clk, reset;

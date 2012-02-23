@@ -12,13 +12,13 @@ module gate_matrix_table_tb();
     .gate(5'd0),
     .result(result),
     .ready(1'b1),
-    .done(done)
+    .done_pulse(done)
   );
 
   // Expected result
-  const int signed expected_result[0:1][0:1][0:1] = {
-    {{185363, 0}, { 185363, 0}},
-    {{185363, 0}, {-185363, 0}}
+  const int signed expected_result[0:1][0:1][0:1] = '{
+    '{'{185363, 0}, '{ 185363, 0}},
+    '{'{185363, 0}, '{-185363, 0}}
   };
 
   integer _row, _col, _imag;

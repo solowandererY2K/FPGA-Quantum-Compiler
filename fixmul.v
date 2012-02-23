@@ -1,5 +1,5 @@
 // Module for doing a fixed-point multiply of two numbers.
-
+`timescale 1ns / 1ns
 module fixmul (a, b, result);
   parameter IN_BITS = 19, OUT_BITS = 19;
   input  signed [ IN_BITS-1:0] a;

@@ -1,5 +1,6 @@
 // Multiplies two complex numbers.
 // TODO: allow configurable return precision.
+`timescale 1ns / 1ns
 module complex_fix_mul (x, y, out);
   parameter IN_BITS = 19, OUT_BITS = 20;
   input  signed [ IN_BITS-1:0] x   [0:1];
