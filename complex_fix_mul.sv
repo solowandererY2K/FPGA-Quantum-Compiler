@@ -2,7 +2,7 @@
 // TODO: allow configurable return precision.
 `timescale 1ns / 1ns
 module complex_fix_mul (x, y, out);
-  parameter IN_BITS = 19, OUT_BITS = 20;
+  parameter IN_BITS = 37, OUT_BITS = 38;
   input  signed [ IN_BITS-1:0] x   [0:1];
   input  signed [ IN_BITS-1:0] y   [0:1];
   output signed [OUT_BITS-1:0] out [0:1];

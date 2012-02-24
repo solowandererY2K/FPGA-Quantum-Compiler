@@ -2,7 +2,7 @@
 `timescale 1ns / 1ns
 module gate_matrix_table_tb();
   wire clk, reset, done;
-  wire signed [18:0] result[0:1][0:1][0:1];
+  wire signed [36:0] result[0:1][0:1][0:1];
 
   clockGen clock(clk, reset);
 

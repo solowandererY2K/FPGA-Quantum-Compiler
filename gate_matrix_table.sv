@@ -14,7 +14,7 @@ module gate_matrix_table(clk, reset, gate, result, ready, done_pulse);
 
   // To client
   // TODO: register needed?
-  output reg signed [18:0] result[0:1][0:1][0:1];
+  output reg signed [36:0] result[0:1][0:1][0:1];
   reg done;
 
   // Result index
@@ -25,7 +25,7 @@ module gate_matrix_table(clk, reset, gate, result, ready, done_pulse);
   wire row = last_index[2], column = last_index[1], imag = last_index[0];
 
   // Current number
-  wire [18:0] dataout_sig;
+  wire [39:0] dataout_sig;
   wire init_busy_sig;
   wire [7:0] address_sig = {gate, index};
 
@@ -51,7 +51,7 @@ module gate_matrix_table(clk, reset, gate, result, ready, done_pulse);
           done <= 0;
         end
       end else begin
-        result[row][column][imag] <= dataout_sig;
+        result[row][column][imag] <= dataout_sig[36:0];
         index                     <= index + 1;
         last_index                <= index;
         done                      <= (last_index == 3'b111);

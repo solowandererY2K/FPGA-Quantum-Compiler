@@ -28,8 +28,7 @@ module sequence_multiplier(
   parameter SEQ_INDEX_BITS = 5;
 
   // Number of bits in a number.
-  // In the future, it will be changed to 36 for better precision.
-  parameter NUMERIC_BITS = 19;
+  parameter NUMERIC_BITS = 37;
 
   // Highest sequence index to be cached in the matrix result cache.
   parameter HIGHEST_SEQ_INDEX = 4;

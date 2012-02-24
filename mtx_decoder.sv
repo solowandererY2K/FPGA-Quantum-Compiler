@@ -4,13 +4,13 @@ module mtx_decoder (
   input reset,
   input clk,
 
-  input signed [18:0] matrix_cell,
+  input signed [36:0] matrix_cell,
   input imag,    // high if imaginary, low if real
   input row,     // high for row 1,    low for row 0
   input col,     // high for column 1, low for column 0
   input ready,
 
-  output reg signed [18:0] matrix[0:1][0:1][0:1]
+  output reg signed [36:0] matrix[0:1][0:1][0:1]
 );
 
   parameter SIMULATE=0;

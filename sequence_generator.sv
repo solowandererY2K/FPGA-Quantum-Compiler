@@ -76,15 +76,7 @@ module sequence_generator(
   assign first = seq_gate == max_length - 1;
   assign seq_gate = gates[seq_index];
 
-  genvar i;
-  generate
-    for (i = 0; i <= HIGHEST_SEQ_INDEX; i++) begin:I
-      always @(posedge clk) begin
-        if (start) gates[i] <= 0;
-      end
-    end
-  endgenerate
-
+  integer i;
   always @(posedge clk) begin
     if (reset) begin
       state <= WAITING;
@@ -96,6 +88,9 @@ module sequence_generator(
             state <= SENDING;
             seq_index <= max_length - 1;
             complete <= 0;
+            for (i = 0; i <= HIGHEST_SEQ_INDEX; i++) begin
+              gates[i] <= 0;
+            end
           end
 
         SENDING:

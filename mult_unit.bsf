@@ -1,0 +1,64 @@
+/*
+WARNING: Do NOT edit the input and output ports in this file in a text
+editor if you plan to continue editing the block that represents it in
+the Block Editor! File corruption is VERY likely to occur.
+*/
+/*
+Copyright (C) 1991-2010 Altera Corporation
+Your use of Altera Corporation's design tools, logic functions 
+and other software and tools, and its AMPP partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Altera Program License 
+Subscription Agreement, Altera MegaCore Function License 
+Agreement, or other applicable license agreement, including, 
+without limitation, that your use is for the sole purpose of 
+programming logic devices manufactured by Altera and sold by 
+Altera or its authorized distributors.  Please refer to the 
+applicable agreement for further details.
+*/
+(header "symbol" (version "1.2"))
+(symbol
+	(rect 0 0 176 104)
+	(text "mult_unit" (rect 65 0 127 16)(font "Arial" (font_size 10)))
+	(text "inst" (rect 8 88 25 100)(font "Arial" ))
+	(port
+		(pt 0 72)
+		(input)
+		(text "dataa[35..0]" (rect 0 0 67 14)(font "Arial" (font_size 8)))
+		(text "dataa[35..0]" (rect 4 58 59 71)(font "Arial" (font_size 8)))
+		(line (pt 0 72)(pt 72 72))
+	)
+	(port
+		(pt 0 104)
+		(input)
+		(text "datab[35..0]" (rect 0 0 67 14)(font "Arial" (font_size 8)))
+		(text "datab[35..0]" (rect 4 90 59 103)(font "Arial" (font_size 8)))
+		(line (pt 0 104)(pt 72 104))
+	)
+	(port
+		(pt 176 88)
+		(output)
+		(text "result[71..0]" (rect 0 0 67 14)(font "Arial" (font_size 8)))
+		(text "result[71..0]" (rect 121 74 176 87)(font "Arial" (font_size 8)))
+	)
+	(drawing
+		(text "Unsigned" (rect 105 89 247 189)(font "Arial" ))
+		(text "multiplication" (rect 105 99 262 209)(font "Arial" ))
+		(line (pt 82 82)(pt 94 94)(line_width 3))
+		(line (pt 82 94)(pt 94 82)(line_width 3))
+		(line (pt 72 72)(pt 77 77))
+		(line (pt 72 104)(pt 77 99))
+		(line (pt 0 0)(pt 182 0))
+		(line (pt 182 0)(pt 182 112))
+		(line (pt 0 112)(pt 182 112))
+		(line (pt 0 0)(pt 0 112))
+		(line (pt 181 88)(pt 104 88))
+		(line (pt 0 0)(pt 0 0))
+		(line (pt 0 0)(pt 0 0))
+		(line (pt 0 0)(pt 0 0))
+		(line (pt 0 0)(pt 0 0))
+		(circle (rect 72 72 104 104))
+	)
+)

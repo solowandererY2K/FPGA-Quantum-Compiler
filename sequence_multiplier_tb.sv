@@ -15,13 +15,13 @@ module sequence_multiplier_tb();
   wire available;
 
   // Output to later stages
-  wire signed [18:0] result_mtx[0:1][0:1][0:1];
+  wire signed [36:0] result_mtx[0:1][0:1][0:1];
   wire done;
 
   // Matrix multiplier
-  wire signed [18:0] mtx_a[0:1][0:1][0:1];
-  wire signed [18:0] mtx_b[0:1][0:1][0:1];
-  wire signed [18:0] multiplier_result[0:1][0:1][0:1];
+  wire signed [36:0] mtx_a[0:1][0:1][0:1];
+  wire signed [36:0] mtx_b[0:1][0:1][0:1];
+  wire signed [36:0] multiplier_result[0:1][0:1][0:1];
 
   wire multiplier_ready;
   reg  multiplier_done;

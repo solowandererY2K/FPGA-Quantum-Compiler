@@ -11,18 +11,19 @@
  *                       desired matrix cell.
  */
 `timescale 1ns / 1ns
+// TODO: parameterize by number size
 module complex_matrix_multiplier (
   input reset,
   input clk,
 
   // Matrices
-  input signed [18:0] mtx_a[0:1][0:1][0:1],
-  input signed [18:0] mtx_b[0:1][0:1][0:1],
+  input signed [36:0] mtx_a[0:1][0:1][0:1],
+  input signed [36:0] mtx_b[0:1][0:1][0:1],
 
   input ready,
 
   // Result matrix
-  output signed [18:0] mtx_r[0:1][0:1][0:1],
+  output signed [36:0] mtx_r[0:1][0:1][0:1],
 
   // Goes high once calculation is complete.
   output reg completed
@@ -30,14 +31,14 @@ module complex_matrix_multiplier (
 
   // Intermediate multiplication results
   // TODO: we might want to remove this intermediate buffer.
-  reg signed [19:0] mult_results [0:1][0:1][0:1][0:1];
+  reg signed [37:0] mult_results [0:1][0:1][0:1][0:1];
 
   // Intermediate result wires
-  wire signed [19:0] w_mult_results [0:1][0:1][0:1][0:1];
+  wire signed [37:0] w_mult_results [0:1][0:1][0:1][0:1];
 
   // Buffers for the input matrices
-  reg signed [18:0] mtx_a_buf[0:1][0:1][0:1];
-  reg signed [18:0] mtx_b_buf[0:1][0:1][0:1];
+  reg signed [36:0] mtx_a_buf[0:1][0:1][0:1];
+  reg signed [36:0] mtx_b_buf[0:1][0:1][0:1];
 
   // Calculate intermediate results
   genvar r, c, i;
@@ -46,8 +47,8 @@ module complex_matrix_multiplier (
       for (c = 0; c < 2; c = c + 1) begin:C
         for (i = 0; i < 2; i = i + 1) begin:I
           // Do calculation
-          complex_fix_mul mul_$r$c$i(mtx_a_buf[r][i], mtx_b_buf[i][c],
-                                     w_mult_results[r][c][i]);
+          complex_fix_mul cell_mul(mtx_a_buf[r][i], mtx_b_buf[i][c],
+                                   w_mult_results[r][c][i]);
 
           // Copy over multiplication results
           always @(posedge clk) begin
