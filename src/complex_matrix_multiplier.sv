@@ -49,17 +49,6 @@ module complex_matrix_multiplier (
           // Do calculation
           complex_fix_mul cell_mul(mtx_a_buf[r][i], mtx_b_buf[i][c],
                                    w_mult_results[r][c][i]);
-
-          // Copy over multiplication results
-          always @(posedge clk) begin
-            mult_results[r][c][i] <= w_mult_results[r][c][i];
-          end
-        end
-
-        // Copy over buffers
-        always @(posedge clk) begin
-          mtx_a_buf[r][c] <= mtx_a[r][c];
-          mtx_b_buf[r][c] <= mtx_b[r][c];
         end
 
         // Assign multiplication results
@@ -74,15 +63,31 @@ module complex_matrix_multiplier (
 
   reg mult_completed;
 
+  integer r2, c2, i2;
+
   always @(posedge clk) begin
+    // Do register transfers
+    for (r2 = 0; r2 < 2; r2 = r2 + 1) begin
+      for (c2 = 0; c2 < 2; c2 = c2 + 1) begin
+        for (i2 = 0; i2 < 2; i2 = i2 + 1) begin
+          // Copy over multiplication results
+          mult_results[r2][c2][i2] <= w_mult_results[r2][c2][i2];
+        end
+
+        // Copy over buffers
+        mtx_a_buf[r2][c2] <= mtx_a[r2][c2];
+        mtx_b_buf[r2][c2] <= mtx_b[r2][c2];
+      end
+    end
+
     if (reset) begin
       mult_completed <= 0;
-      completed <= 0;
+      completed      <= 0;
     end else begin
-      completed <= mult_completed;
+      completed      <= mult_completed;
       mult_completed <= ready;
-      mtx_a_buf <= mtx_a;
-      mtx_b_buf <= mtx_b;
+      mtx_a_buf      <= mtx_a;
+      mtx_b_buf      <= mtx_b;
     end
   end
 endmodule // complex_matrix_multiplier

@@ -19,10 +19,10 @@ module complex_fix_mul (x, y, out);
   wire signed [OUT_BITS-2:0] ac, bd, bc, ad;
 
   // (a+bi)(c+di) = (ac-bd) + (bc-ad)i
-  fixmul #(IN_BITS, OUT_BITS-1) mult_ac(a, c, ac);
-  fixmul #(IN_BITS, OUT_BITS-1) mult_bd(b, d, bd);
-  fixmul #(IN_BITS, OUT_BITS-1) mult_bc(b, c, bc);
-  fixmul #(IN_BITS, OUT_BITS-1) mult_ad(a, d, ad);
+  fix_mul #(IN_BITS, OUT_BITS-1) mult_ac(a, c, ac);
+  fix_mul #(IN_BITS, OUT_BITS-1) mult_bd(b, d, bd);
+  fix_mul #(IN_BITS, OUT_BITS-1) mult_bc(b, c, bc);
+  fix_mul #(IN_BITS, OUT_BITS-1) mult_ad(a, d, ad);
 
   // TODO: try to get better precision via rounding.
   // TODO: watch out for ones!

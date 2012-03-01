@@ -46,8 +46,9 @@ module dist_calc (
 
     // Square the real and imaginary parts, also dividing by 8 to make them
     // fit into our 19-bit limit.
-    fixmul #(19,37) sq1(final_sum[REAL][21:3], final_sum[REAL][21:3], squares[REAL]);
-    fixmul #(19,37) sq2(final_sum[IMAG][21:3], final_sum[IMAG][21:3], squares[IMAG]);
+    // TODO: use Altera's multiplier megafunction for squaring.
+    fix_mul #(19,37) sq1(final_sum[REAL][21:3], final_sum[REAL][21:3], squares[REAL]);
+    fix_mul #(19,37) sq2(final_sum[IMAG][21:3], final_sum[IMAG][21:3], squares[IMAG]);
 
     // Add the results
     add_ex #(37)    result_adder(squares[REAL], squares[IMAG], result);

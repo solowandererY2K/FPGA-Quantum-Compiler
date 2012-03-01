@@ -38,7 +38,7 @@
 
 set_global_assignment -name FAMILY "Cyclone II"
 set_global_assignment -name DEVICE EP2C20F484C6
-set_global_assignment -name TOP_LEVEL_ENTITY de1_d5m
+set_global_assignment -name TOP_LEVEL_ENTITY coordinator
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION "9.1 SP1"
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "23:27:35  JANUARY 18, 2012"
 set_global_assignment -name LAST_QUARTUS_VERSION "10.0 SP1"
@@ -336,28 +336,30 @@ set_location_assignment PIN_Y7 -to SRAM_LB_N
 set_location_assignment PIN_T8 -to SRAM_OE_N
 set_location_assignment PIN_W7 -to SRAM_UB_N
 set_location_assignment PIN_AA10 -to SRAM_WE_N
-set_global_assignment -name SYSTEMVERILOG_FILE serial_number_decoder.sv
-set_global_assignment -name SYSTEMVERILOG_FILE serial_matrix_decoder.sv
-set_global_assignment -name SYSTEMVERILOG_FILE coordinator.sv
-set_global_assignment -name SYSTEMVERILOG_FILE sequence_multiplier_tb.sv
-set_global_assignment -name SYSTEMVERILOG_FILE sequence_multiplier.sv
-set_global_assignment -name SYSTEMVERILOG_FILE sequence_generator_tb.sv
-set_global_assignment -name SYSTEMVERILOG_FILE sequence_generator.sv
-set_global_assignment -name SYSTEMVERILOG_FILE gate_matrix_table.sv
-set_global_assignment -name SYSTEMVERILOG_FILE uart_sender.sv
-set_global_assignment -name SYSTEMVERILOG_FILE reset_delay.sv
-set_global_assignment -name SYSTEMVERILOG_FILE de1_d5m.sv
-set_global_assignment -name SYSTEMVERILOG_FILE complex_matrix_multiplier_top.sv
-set_global_assignment -name SYSTEMVERILOG_FILE complex_matrix_multiplier.sv
-set_global_assignment -name SYSTEMVERILOG_FILE mtx_decoder.sv
-set_global_assignment -name SYSTEMVERILOG_FILE matrix_multiplier.sv
-set_global_assignment -name VERILOG_FILE fixmul.v
-set_global_assignment -name SYSTEMVERILOG_FILE complex_fix_mul.sv
-set_global_assignment -name MIF_FILE gates_19bit.mif
-set_global_assignment -name QIP_FILE gate_rom.qip
-set_global_assignment -name HEX_FILE gates_19bit.hex
 set_global_assignment -name HEX_FILE gates_37bit.hex
-set_global_assignment -name QIP_FILE mult_unit.qip
+set_global_assignment -name BSF_FILE src/mult_unit.bsf
+set_global_assignment -name BSF_FILE src/gate_rom.bsf
+set_global_assignment -name QIP_FILE src/mult_unit.qip
+set_global_assignment -name QIP_FILE src/gate_rom.qip
+set_global_assignment -name SYSTEMVERILOG_FILE src/uart_sender.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/serial_number_encoder.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/serial_number_decoder.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/serial_matrix_encoder.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/serial_matrix_decoder.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/sequence_multiplier.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/sequence_generator.sv
+set_global_assignment -name VERILOG_FILE src/mult_unit.v
+set_global_assignment -name SYSTEMVERILOG_FILE src/mtx_decoder.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/matrix_multiplier.sv
+set_global_assignment -name VERILOG_FILE src/gate_rom.v
+set_global_assignment -name SYSTEMVERILOG_FILE src/gate_matrix_table.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/fix_mul.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/dist.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/de1_d5m.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/coordinator.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/complex_matrix_multiplier.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/complex_fix_mul.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/add_ex.sv
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"

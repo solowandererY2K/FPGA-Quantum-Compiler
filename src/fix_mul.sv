@@ -1,6 +1,6 @@
 // Module for doing a fixed-point multiply of two numbers.
 `timescale 1ns / 1ns
-module fixmul (a, b, result);
+module fix_mul (a, b, result);
   parameter IN_BITS = 37, OUT_BITS = 37, RESULT_BITS = 72;
   input  signed [ IN_BITS-1:0] a;
   input  signed [ IN_BITS-1:0] b;
