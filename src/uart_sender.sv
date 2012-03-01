@@ -33,15 +33,12 @@ module uart_sender(
           if (data_to_send_ready) begin
             // Copy new bits to send buffer
             send_buffer <= {2'b1, data_to_send, 1'b0};
-          end else begin
-            send_buffer <= send_buffer;
           end
         end else begin
           // Shift bits
           send_buffer <= {1'b0, send_buffer[10:1]};
         end
       end else begin
-        send_buffer <= send_buffer;
         timer <= timer - 1;
       end
     end

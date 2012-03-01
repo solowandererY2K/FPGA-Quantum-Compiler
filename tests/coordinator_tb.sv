@@ -10,7 +10,8 @@ module coordinator_tb();
   reg received_ready;
 
   wire [7:0] transmit_byte;
-  reg  transmit_available;
+  reg  [2:0] transmit_timer;
+  wire transmit_available = transmit_timer == 0;
   wire transmit_ready;
 
   wire [7:0] green_leds;
@@ -55,10 +56,13 @@ module coordinator_tb();
   };
 `endif
 
-  // Emulate the byte transmitter
+  // Emulate the byte transmitter with a delay timer.
   always @(posedge clk) begin
-    transmit_available <= transmit_available ?
-      !(transmit_available && transmit_ready) : 1'b1;
+    if (transmit_available) begin
+      transmit_timer <= transmit_ready ? 3'd7 : 3'd0;
+    end else begin
+      transmit_timer <= transmit_timer - 1;
+    end
   end
 
   // Start the enumeration
@@ -156,7 +160,7 @@ module coordinator_tb();
     received_ready <= 1'b1;
     #10
     received_ready <= 1'b0;
-    transmit_available <= 1'b0;
+    transmit_timer <= 3'd0;
 
     // Start sending the numbers one row at a time
     for (op = 0; op < 2; op++) begin
@@ -179,7 +183,6 @@ module coordinator_tb();
     end
 
     // At this point, the result should be provided...
-    transmit_available <= 1'b1;
 
     // TODO: verify here
 `endif

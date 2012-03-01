@@ -67,7 +67,7 @@ add wave -noupdate -format Literal /coordinator_tb/coord/cmm/mtx_a
 add wave -noupdate -format Literal /coordinator_tb/coord/cmm/mtx_b
 add wave -noupdate -format Logic /coordinator_tb/coord/cmm/ready
 add wave -noupdate -format Literal /coordinator_tb/coord/cmm/mtx_r
-add wave -noupdate -format Logic /coordinator_tb/coord/cmm/completed
+add wave -noupdate -format Logic /coordinator_tb/coord/cmm/available
 add wave -noupdate -format Literal /coordinator_tb/coord/cmm/w_mult_results
 add wave -noupdate -format Logic /coordinator_tb/coord/cmm/mult_completed
 TreeUpdate [SetDefaultTree]

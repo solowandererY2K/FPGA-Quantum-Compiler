@@ -6,6 +6,7 @@
 *.exe
 *.html
 *.inc
+*.jdi
 *.jpg
 *.mif
 *.pin
@@ -30,6 +31,7 @@
 /incremental_db
 /simulation/modelsim/gate_work
 /simulation/modelsim/rtl_work
+/temp
 /uploads
 /work
 filters.xml

@@ -56,15 +56,17 @@ module serial_number_encoder (
   endgenerate
 
   reg transmit_available_last;
-  wire transmit_available_pulse =
+  wire transmit_available_rising_edge =
     !transmit_available_last && transmit_available;
+  wire transmit_available_falling_edge =
+    transmit_available_last && !transmit_available;
 
   always @(posedge clk) begin
-    transmit_ready <= 0;
     if (reset) begin
       byte_index <= 0;
       available <= 1;
       transmit_available_last <= 0;
+      transmit_ready <= 0;
     end else begin
       transmit_available_last <= transmit_available;
       if (available) begin
@@ -76,13 +78,17 @@ module serial_number_encoder (
         end
       end else begin
         // Transmit the next byte, or just stop transmitting.
-        if (transmit_available_pulse) begin
+        if (transmit_available_rising_edge) begin
           if (byte_index == NUMBER_BYTES - 1) begin
             available <= 1;
+            transmit_ready <= 0;
           end else begin
             byte_index     <= byte_index + 1;
             transmit_ready <= 1;
           end
+        end else begin
+          // TODO: do we need this?
+          if (transmit_available_falling_edge) transmit_ready <= 0;
         end
       end
     end

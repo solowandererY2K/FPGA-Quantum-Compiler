@@ -14,5 +14,5 @@ compile serial_number_encoder.sv
 compile serial_matrix_encoder.sv
 compile_tb clockGen.v
 compile_tb coordinator_tb.sv
-vsim -L lpm_ver -L altera_mf_ver -do "source test_coordinator_format.do;run 5500ns" -gui work.coordinator_tb
+vsim -L lpm_ver -L altera_mf_ver -do "source test_coordinator_format.do;run 8000ns" -gui work.coordinator_tb
 

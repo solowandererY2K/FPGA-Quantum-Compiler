@@ -172,7 +172,7 @@ module coordinator(
     .mtx_r(cmm_result),
 
     .ready(cmm_ready),
-    .completed(cmm_done)
+    .available(cmm_done)
   );
 
   always @(posedge clk) begin
@@ -180,6 +180,10 @@ module coordinator(
       last_state <= WAITING;
       state      <= WAITING;
     end else begin
+      // Light up LEDs depending on state
+      if (last_state != state) begin
+        green_leds <= {4'd0, state};
+      end
       last_state <= state;
       case (state)
         WAITING:
