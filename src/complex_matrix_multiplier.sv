@@ -26,68 +26,59 @@ module complex_matrix_multiplier (
   output signed [36:0] mtx_r[0:1][0:1][0:1],
 
   // Goes high once calculation is complete.
-  output reg completed
+  output reg available
 );
 
   // Intermediate multiplication results
   // TODO: we might want to remove this intermediate buffer.
   reg signed [37:0] mult_results [0:1][0:1][0:1][0:1];
 
-  // Intermediate result wires
-  wire signed [37:0] w_mult_results [0:1][0:1][0:1][0:1];
-
-  // Buffers for the input matrices
-  reg signed [36:0] mtx_a_buf[0:1][0:1][0:1];
-  reg signed [36:0] mtx_b_buf[0:1][0:1][0:1];
-
   // Calculate intermediate results
-  genvar r, c, i;
+  genvar r2, c2, i2;
   generate
-    for (r = 0; r < 2; r = r + 1) begin:R
-      for (c = 0; c < 2; c = c + 1) begin:C
-        for (i = 0; i < 2; i = i + 1) begin:I
-          // Do calculation
-          complex_fix_mul cell_mul(mtx_a_buf[r][i], mtx_b_buf[i][c],
-                                   w_mult_results[r][c][i]);
-        end
-
+    for (r2 = 0; r2 < 2; r2 = r2 + 1) begin:R
+      for (c2 = 0; c2 < 2; c2 = c2 + 1) begin:C
         // Assign multiplication results
-        for (i = 0; i < 2; i = i + 1) begin:I2
+        for (i2 = 0; i2 < 2; i2 = i2 + 1) begin:I2
           // TODO: think carefully about the implications here...
-          assign mtx_r[r][c][i] = ({1'b0, mult_results[r][c][0][i]} +
-                                   {1'b0, mult_results[r][c][1][i]});
+          assign mtx_r[r2][c2][i2] = ({1'b0, mult_results[r2][c2][0][i2]} +
+                                      {1'b0, mult_results[r2][c2][1][i2]});
         end
       end
     end
   endgenerate
 
-  reg mult_completed;
+  reg [2:0] index;
+  wire r = index[2];
+  wire c = index[1];
+  wire i = index[0];
 
-  integer r2, c2, i2;
+  // Intermediate result
+  wire signed [37:0] mult_result[0:1];
+
+  // Do calculation
+  complex_fix_mul cell_mul(mtx_a[r][i],
+                           mtx_b[i][c],
+                           mult_result);
 
   always @(posedge clk) begin
-    // Do register transfers
-    for (r2 = 0; r2 < 2; r2 = r2 + 1) begin
-      for (c2 = 0; c2 < 2; c2 = c2 + 1) begin
-        for (i2 = 0; i2 < 2; i2 = i2 + 1) begin
-          // Copy over multiplication results
-          mult_results[r2][c2][i2] <= w_mult_results[r2][c2][i2];
-        end
-
-        // Copy over buffers
-        mtx_a_buf[r2][c2] <= mtx_a[r2][c2];
-        mtx_b_buf[r2][c2] <= mtx_b[r2][c2];
-      end
-    end
 
     if (reset) begin
-      mult_completed <= 0;
-      completed      <= 0;
+      available <= 1;
     end else begin
-      completed      <= mult_completed;
-      mult_completed <= ready;
-      mtx_a_buf      <= mtx_a;
-      mtx_b_buf      <= mtx_b;
+      if (available) begin
+        if (ready) begin
+          index <= 0;
+          available <= 0;
+        end
+      end else begin
+        // Copy over multiplication results
+        mult_results[r][c][i] <= mult_result;
+        index <= index + 1;
+        if (index == 3'b111) begin
+          available <= 1;
+        end
+      end
     end
   end
 endmodule // complex_matrix_multiplier
