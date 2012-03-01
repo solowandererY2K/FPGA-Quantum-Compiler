@@ -8,6 +8,7 @@ module serial_matrix_decoder (
 
   matrix_cell,
   ready,
+  needs_number,
 
   matrix,
   done
@@ -26,6 +27,8 @@ module serial_matrix_decoder (
   output reg signed [NUMBER_BITS-1:0] matrix[0:1][0:1][0:1];
   output done;
 
+  output reg needs_number;
+
   reg [3:0] index;
   assign done = index[3];
   wire r = index[2];
@@ -33,12 +36,17 @@ module serial_matrix_decoder (
   wire i = index[0];
 
   always @(posedge clk) begin
+    needs_number <= 0;
     if (reset) begin
       index <= 0;
+      needs_number <= 1;
     end else begin
       if (ready) begin
         matrix[r][c][i] <= matrix_cell;
         index <= index + 1;
+        if (index != 4'b0111) begin
+          needs_number <= 1;
+        end
       end
     end
   end

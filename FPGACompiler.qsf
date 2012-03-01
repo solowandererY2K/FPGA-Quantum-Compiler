@@ -38,7 +38,7 @@
 
 set_global_assignment -name FAMILY "Cyclone II"
 set_global_assignment -name DEVICE EP2C20F484C6
-set_global_assignment -name TOP_LEVEL_ENTITY sequence_generator
+set_global_assignment -name TOP_LEVEL_ENTITY de1_d5m
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION "9.1 SP1"
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "23:27:35  JANUARY 18, 2012"
 set_global_assignment -name LAST_QUARTUS_VERSION "10.0 SP1"
@@ -336,6 +336,9 @@ set_location_assignment PIN_Y7 -to SRAM_LB_N
 set_location_assignment PIN_T8 -to SRAM_OE_N
 set_location_assignment PIN_W7 -to SRAM_UB_N
 set_location_assignment PIN_AA10 -to SRAM_WE_N
+set_global_assignment -name SYSTEMVERILOG_FILE serial_number_decoder.sv
+set_global_assignment -name SYSTEMVERILOG_FILE serial_matrix_decoder.sv
+set_global_assignment -name SYSTEMVERILOG_FILE coordinator.sv
 set_global_assignment -name SYSTEMVERILOG_FILE sequence_multiplier_tb.sv
 set_global_assignment -name SYSTEMVERILOG_FILE sequence_multiplier.sv
 set_global_assignment -name SYSTEMVERILOG_FILE sequence_generator_tb.sv
@@ -349,15 +352,7 @@ set_global_assignment -name SYSTEMVERILOG_FILE complex_matrix_multiplier.sv
 set_global_assignment -name SYSTEMVERILOG_FILE mtx_decoder.sv
 set_global_assignment -name SYSTEMVERILOG_FILE matrix_multiplier.sv
 set_global_assignment -name VERILOG_FILE fixmul.v
-set_global_assignment -name VERILOG_FILE FPGACompiler.v
-set_global_assignment -name VECTOR_WAVEFORM_FILE FPGACompiler.vwf
-set_global_assignment -name VECTOR_WAVEFORM_FILE FPGACompiler.sim.vwf
-set_global_assignment -name VECTOR_WAVEFORM_FILE matrix_multiplier.vwf
-set_global_assignment -name VECTOR_WAVEFORM_FILE matrix_multiplier.sim.vwf
 set_global_assignment -name SYSTEMVERILOG_FILE complex_fix_mul.sv
-set_global_assignment -name VECTOR_WAVEFORM_FILE complex_fix_mul.vwf
-set_global_assignment -name VECTOR_WAVEFORM_FILE complex_fix_mul.sim.vwf
-set_global_assignment -name VECTOR_WAVEFORM_FILE complex_matrix_multiplier_top.vwf
 set_global_assignment -name MIF_FILE gates_19bit.mif
 set_global_assignment -name QIP_FILE gate_rom.qip
 set_global_assignment -name HEX_FILE gates_19bit.hex

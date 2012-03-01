@@ -1,4 +1,5 @@
 *.bak*
+*.cdf
 *.cmp
 *.cr.mti
 *.done
@@ -12,13 +13,17 @@
 *.qdf
 *.qws
 *.rpt
+*.sdo
+*.sft
 *.smsg
 *.sof
 *.summary
 *.swp
 *.txt
 *.ver
+*.vho
 *.wlf
+*.xrf
 *_inst.v
 *run_msim*
 /db
@@ -28,5 +33,6 @@
 /uploads
 /work
 filters.xml
+hardcopy*
 msim_transcript
 undo_redo.txt

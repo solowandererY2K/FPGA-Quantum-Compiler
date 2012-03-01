@@ -10,6 +10,8 @@ compile sequence_multiplier.sv
 compile coordinator.sv
 compile serial_number_decoder.sv
 compile serial_matrix_decoder.sv
+compile serial_number_encoder.sv
+compile serial_matrix_encoder.sv
 compile coordinator_tb.sv
-vsim -L lpm_ver -L altera_mf_ver -do "source test_coordinator_format.do;run 2000ns" -gui work.coordinator_tb
+vsim -L lpm_ver -L altera_mf_ver -do "source test_coordinator_format.do;run 5500ns" -gui work.coordinator_tb
 
