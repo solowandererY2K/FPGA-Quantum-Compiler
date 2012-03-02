@@ -41,9 +41,14 @@ module coordinator(
   input [7:0] received_byte;
   input received_ready;
 
+`ifdef MATRIX_BENCHMARK
   output [7:0] transmit_byte;
-  input  transmit_available;
   output transmit_ready;
+`else
+  output reg [7:0] transmit_byte;
+  output reg transmit_ready;
+`endif
+  input  transmit_available;
 
   output reg [7:0] green_leds;
 
@@ -62,7 +67,8 @@ module coordinator(
 `else
     // Calculation!
     CALCULATING,
-    SENDING_RESULT
+    SENDING_RESULT,
+    SENDING_FAILURE
 `endif
   } state_t;
 
@@ -264,6 +270,7 @@ module coordinator(
       last_state <= WAITING;
       state      <= WAITING;
     end else begin
+      transmit_ready <= 1'b1;
       // Light up LEDs depending on state
       if (last_state != state) begin
         green_leds <= {4'd0, state};
@@ -277,8 +284,9 @@ module coordinator(
               "B": begin
                 state <= MT_READING_A;
               end
-`endif
+`else
               "C": state <= CALCULATING;
+`endif
 
               "D": begin
                 state <= READING_DISTANCE;
@@ -311,11 +319,42 @@ module coordinator(
             state           <= WAITING;
           end
 
+`ifndef MATRIX_BENCHMARK
         CALCULATING:
           // TODO: implement
           if (seq_found) begin
+            state <= SENDING_RESULT;
+            transmit_byte <= "R";
+            transmit_ready <= 1'b1;
+          end else begin
+            if (seq_gen_complete) begin
+              transmit_byte <= "F";
+              transmit_ready <= 1'b1;
+              state <= SENDING_FAILURE;
+            end
+          end
+
+        // Send the list of gates in the result.
+        SENDING_RESULT: begin
+          // TODO: rethink...
+          if (transmit_available) begin
+            transmit_ready <= 1'b0;
+            // TODO: send sequence
             state <= WAITING;
           end
+        end
+
+        // Send a failure message, meaning no gate of length max_length
+        // could be found.
+        SENDING_FAILURE: begin
+          // TODO: rethink...
+          if (transmit_available) begin
+            transmit_ready <= 1'b0;
+            state <= WAITING;
+          end
+        end
+
+`endif
 
         LEDS:
           if (received_ready) begin

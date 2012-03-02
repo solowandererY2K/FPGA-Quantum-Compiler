@@ -123,7 +123,7 @@ module sequence_generator(
 
         ADVANCING:
           if (seq_gate == HIGHEST_GATE) begin
-            if (seq_index == max_length) begin
+            if (seq_index == max_length - 1) begin
               complete <= 1'b1;
               state    <= WAITING;
             end else begin

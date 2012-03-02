@@ -4,6 +4,8 @@
 `ifndef TYPES_SVI
 `define TYPES_SVI
 
+parameter SIMULATION = 1;
+
 ////////////////////////////// PARAMETERS /////////////////////////////////
 
 parameter NUMBER_BITS = 37;
@@ -13,10 +15,11 @@ parameter NUMBER_BITS = 37;
 parameter SEQ_INDEX_BITS = 8;
 
 // Highest possible sequence index.
+// TODO: increase this for non-simulation
 parameter HIGHEST_SEQ_INDEX = 4;
 
 // Highest gate number
-parameter HIGHEST_GATE = 24;
+parameter HIGHEST_GATE = SIMULATION ? 2 : 24;
 
 // TODO: uncomment and use these types.
 /*

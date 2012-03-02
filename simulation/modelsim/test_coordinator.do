@@ -15,4 +15,4 @@ compile sequence_generator.sv
 compile sequence_multiplier.sv
 compile_tb clockGen.v
 compile_tb coordinator_tb.sv
-simulate test_coordinator_format coordinator_tb 8000
+simulate test_coordinator_format coordinator_tb 10000
