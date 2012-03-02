@@ -17,7 +17,7 @@
  * W - max length of a sequence to put into product check tree?
  */
 `timescale 1ns / 1ns
-`define MATRIX_BENCHMARK
+//`define MATRIX_BENCHMARK
 module coordinator(
   clk,
   reset,
@@ -34,8 +34,7 @@ module coordinator(
   // To the LEDs
   green_leds
 );
-  /** Number of bits in our numbers. */
-  parameter NUMBER_BITS = 37;
+`include "types.svi"
 
   input clk, reset;
 
@@ -53,7 +52,6 @@ module coordinator(
     READING_MATRIX,
     READING_DISTANCE,
     READING_GATE_LENGTH,
-    CALCULATING,
     LEDS,
 `ifdef MATRIX_BENCHMARK
     // Matrix multiplication test
@@ -61,6 +59,10 @@ module coordinator(
     MT_READING_B,
     MT_CALC,
     MT_SENDING_RESULT
+`else
+    // Calculation!
+    CALCULATING,
+    SENDING_RESULT
 `endif
   } state_t;
 
@@ -71,6 +73,9 @@ module coordinator(
   reg signed [NUMBER_BITS-1:0] mtx_a[0:1][0:1][0:1];
   reg signed [NUMBER_BITS-1:0] mtx_b[0:1][0:1][0:1];
   reg signed [NUMBER_BITS-1:0] mtx_r[0:1][0:1][0:1];
+`else
+  wire signed [NUMBER_BITS-1:0] mtx_a[0:1][0:1][0:1];
+  wire signed [NUMBER_BITS-1:0] mtx_b[0:1][0:1][0:1];
 `endif
 
   // Serial number decoder
@@ -78,7 +83,8 @@ module coordinator(
   wire snd_done;
   wire smd_needs_number;
   wire snd_reset = reset || smd_needs_number ||
-    (last_state == WAITING && state == READING_DISTANCE);
+    (last_state == WAITING && (state == READING_DISTANCE ||
+       state == READING_GATE_LENGTH));
   serial_number_decoder snd(
     .clk(clk),
     .reset(snd_reset),
@@ -95,9 +101,14 @@ module coordinator(
   wire smd_done;
   wire smd_reset = reset ||
     (last_state == WAITING && (
+`ifdef MATRIX_BENCHMARK
       state == MT_READING_A ||
-      state == READING_MATRIX)) ||
-    (last_state == MT_READING_A && state == MT_READING_B);
+`endif
+      state == READING_MATRIX))
+`ifdef MATRIX_BENCHMARK
+    || (last_state == MT_READING_A && state == MT_READING_B)
+`endif
+    ;
   serial_matrix_decoder smd(
     .clk(clk),
     .reset(smd_reset),
@@ -160,7 +171,9 @@ module coordinator(
   reg [7:0] max_gate_length;
 
   // Matrix multiplier
+`ifdef MATRIX_BENCHMARK
   wire cmm_ready = (last_state == MT_READING_B && state == MT_CALC);
+`endif
   wire cmm_done;
   wire signed [NUMBER_BITS-1:0] cmm_result[0:1][0:1][0:1];
   complex_matrix_multiplier cmm(
@@ -174,6 +187,77 @@ module coordinator(
     .ready(cmm_ready),
     .available(cmm_done)
   );
+
+`ifndef MATRIX_BENCHMARK
+  // Sequence generator
+
+  wire seq_gen_start = (last_state == WAITING && state == CALCULATING);
+  wire seq_gen_complete;
+
+  wire [SEQ_INDEX_BITS-1:0] seq_gen_seq_index;
+  wire [4:0] seq_gen_seq_gate;
+  wire seq_gen_ready;
+  wire seq_gen_first;
+  wire seq_gen_available;
+
+  sequence_generator seq_gen(
+    .clk(clk),
+    .reset(reset),
+
+    // From the Coordinator
+    .max_length(max_gate_length),
+    .start(seq_gen_start),
+    .complete(seq_gen_complete),
+
+    // To the Sequence Multiplier
+    .seq_index(seq_gen_seq_index),
+    .seq_gate(seq_gen_seq_gate),
+    .ready(seq_gen_ready),
+    .first(seq_gen_first),
+    .available(seq_gen_available)
+  );
+
+  // Sequence multiplier
+  wire [NUMBER_BITS-1:0] seq_mult_result[0:1][0:1][0:1];
+  wire seq_mult_done;
+
+  sequence_multiplier seq_mult(
+    .clk(clk),
+    .reset(reset),
+
+    .seq_index(seq_gen_seq_index),
+    .seq_gate(seq_gen_seq_gate),
+    .ready(seq_gen_ready),
+    .first(seq_gen_first),
+    .available(seq_gen_available),
+
+    .result_mtx(seq_mult_result),
+    .done(seq_mult_done),
+
+    .multiplier_a(mtx_a),
+    .multiplier_b(mtx_b),
+    .multiplier_ready(cmm_ready),
+    .multiplier_done(cmm_done),
+    .multiplier_result(cmm_result)
+  );
+
+  // Distance checker
+  wire [(NUMBER_BITS+3)*2:0] dist2;
+  wire dst_finished;
+  dist_calc dst(
+    .reset(reset),
+    .clk(clk),
+
+    .mtx_a(seq_mult_result),
+    .mtx_b(smd_mtx),
+
+    .ready(seq_mult_done),
+    .dist2(dist2),
+    .finished(dst_finished)
+  );
+  wire seq_found = (dist2[(NUMBER_BITS)*2:NUMBER_BITS+1] > dist_tolerance)
+                   && dst_finished;
+`endif
 
   always @(posedge clk) begin
     if (reset) begin
@@ -204,6 +288,10 @@ module coordinator(
                 state <= READING_MATRIX;
               end
 
+              "G": begin
+                state <= READING_GATE_LENGTH;
+              end
+
               "L": state <= LEDS;
             endcase
           end
@@ -225,7 +313,9 @@ module coordinator(
 
         CALCULATING:
           // TODO: implement
-          state <= WAITING;
+          if (seq_found) begin
+            state <= WAITING;
+          end
 
         LEDS:
           if (received_ready) begin

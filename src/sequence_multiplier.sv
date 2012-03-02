@@ -21,18 +21,7 @@ module sequence_multiplier(
   multiplier_done,
   multiplier_result
 );
-  ////////////////////////////// PARAMETERS /////////////////////////////////
-
-  // Number of bits in the sequence index.
-  // Increase this parameter to support more than 32 items in a sequence.
-  parameter SEQ_INDEX_BITS = 5;
-
-  // Number of bits in a number.
-  parameter NUMERIC_BITS = 37;
-
-  // Highest sequence index to be cached in the matrix result cache.
-  parameter HIGHEST_SEQ_INDEX = 4;
-
+`include "types.svi"
   //////////////////////////////// PORTS ////////////////////////////////////
 
   input clk, reset;
@@ -49,27 +38,27 @@ module sequence_multiplier(
                     // gate.
 
   // To the Solution Checker and the Duplicate Checker
-  output signed [NUMERIC_BITS-1:0] result_mtx [0:1][0:1][0:1];
+  output signed [NUMBER_BITS-1:0] result_mtx [0:1][0:1][0:1];
   output reg done; // high when a result has been calculated for sequence
                    // item 0.
 
   // To Multiplier
-  output signed [NUMERIC_BITS-1:0] multiplier_a [0:1][0:1][0:1];
-  output signed [NUMERIC_BITS-1:0] multiplier_b [0:1][0:1][0:1];
+  output signed [NUMBER_BITS-1:0] multiplier_a [0:1][0:1][0:1];
+  output signed [NUMBER_BITS-1:0] multiplier_b [0:1][0:1][0:1];
   output reg multiplier_ready;
   input multiplier_done;
-  input signed [NUMERIC_BITS-1:0] multiplier_result [0:1][0:1][0:1];
+  input signed [NUMBER_BITS-1:0] multiplier_result [0:1][0:1][0:1];
 
   ///////////////////////////////// CODE ////////////////////////////////////
 
-  assign done = (available && seq_index == 0);
+  //assign done = (available && seq_index == 0);
 
   // TODO: parameterize this module by number of bits in our fixed point
   // representation.
-  wire signed [NUMERIC_BITS-1:0] gate_mtx[0:1][0:1][0:1];
+  wire signed [NUMBER_BITS-1:0] gate_mtx[0:1][0:1][0:1];
   reg  gate_ready;
   wire gate_done;
-  reg [SEQ_INDEX_BITS-1:0] gate_to_read;
+  reg [4:0] gate_to_read;
   gate_matrix_table gmt (
     .clk(clk),
     .reset(reset),
@@ -84,7 +73,7 @@ module sequence_multiplier(
   // previous matrix by to obtain the result stored in that location.
   // For example, cache_mtx[0] = cache_mtx[1] * gate_sequence[0]
   // TODO: use a memory block to store this huge cache.
-  reg signed [NUMERIC_BITS-1:0] cache_mtx [HIGHEST_SEQ_INDEX:0][0:1][0:1][0:1];
+  reg signed [NUMBER_BITS-1:0] cache_mtx [HIGHEST_SEQ_INDEX:0][0:1][0:1][0:1];
   reg [SEQ_INDEX_BITS-1:0] cache_gates [HIGHEST_SEQ_INDEX:0];
 
   // Stores the index of the highest sequence index to have a result stored
@@ -116,18 +105,26 @@ module sequence_multiplier(
     end
   endgenerate
 
+  // TODO: refactor out all edge detectors.
+  reg multiplier_done_last;
+  wire multiplier_done_rising_edge = multiplier_done &&
+                                     !multiplier_done_last;
+
   always @(posedge clk) begin
+    multiplier_done_last <= multiplier_done;
     if (reset) begin
       cache_first      <= HIGHEST_SEQ_INDEX + 1;
-      gate_to_read     <= HIGHEST_SEQ_INDEX + 1;
+      gate_to_read     <= HIGHEST_GATE + 1;
       multiplier_ready <= 1'b0;
       gate_ready       <= 1'b0;
       state            <= WAITING;
       available        <= 1'b1;
+      done             <= 0;
     end else begin
       case (state)
         WAITING: begin
           if (ready) begin
+            done <= 0;
             // Check for a cached value
             if (cache_gates[seq_index] == seq_gate &&
               (!first || first && cache_first == seq_index)) begin
@@ -149,17 +146,20 @@ module sequence_multiplier(
               if (gate_to_read != seq_gate) begin
                 state        <= READING_GATE;
                 gate_ready   <= 1'b1;
-                gate_to_read <= seq_index;
+                gate_to_read <= seq_gate;
+                available        <= 1'b0;
               end else begin
                 // Skip multiplying if this matrix is the first.
                 if (first) begin
                   state                <= WAITING;
                   available            <= 1'b1;
                   cache_mtx[seq_index] <= gate_mtx;
+                  done                 <= seq_index == 0;
                 end else begin
                   // We've already loaded the gate, so start multiplying.
                   state            <= MULTIPLYING;
                   multiplier_ready <= 1'b1;
+                  available        <= 1'b0;
                 end
               end
             end
@@ -174,6 +174,7 @@ module sequence_multiplier(
               state                <= WAITING;
               available            <= 1'b1;
               cache_mtx[seq_index] <= gate_mtx;
+              done                 <= seq_index == 0;
             end else begin
               state            <= MULTIPLYING;
               multiplier_ready <= 1'b1;
@@ -183,11 +184,12 @@ module sequence_multiplier(
 
         MULTIPLYING: begin
           multiplier_ready <= 1'b0;
-          if (multiplier_done) begin
+          if (multiplier_done_rising_edge) begin
             // Store the multiplier result in the sequence cache.
             state                <= WAITING;
             available            <= 1'b1;
             cache_mtx[seq_index] <= multiplier_result;
+            done                 <= seq_index == 0;
           end
         end
       endcase

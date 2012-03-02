@@ -4,7 +4,19 @@
 `ifndef TYPES_SVI
 `define TYPES_SVI
 
+////////////////////////////// PARAMETERS /////////////////////////////////
+
 parameter NUMBER_BITS = 37;
+
+// Number of bits in the sequence index.
+// Increase this parameter to support more than 32 items in a sequence.
+parameter SEQ_INDEX_BITS = 8;
+
+// Highest possible sequence index.
+parameter HIGHEST_SEQ_INDEX = 4;
+
+// Highest gate number
+parameter HIGHEST_GATE = 24;
 
 // TODO: uncomment and use these types.
 /*

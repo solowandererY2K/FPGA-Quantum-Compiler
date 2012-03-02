@@ -1,5 +1,4 @@
-proc compile {f} {vlog -reportprogress 300 -work work Z:/fpga-compiler/FPGA-Quantum-Compiler/src/$f}
-proc compile_tb {f} {vlog -reportprogress 300 -work work Z:/fpga-compiler/FPGA-Quantum-Compiler/tests/$f}
+source test_utils.do
 compile complex_fix_mul.sv
 compile complex_matrix_multiplier.sv
 compile gate_matrix_table.sv
@@ -12,7 +11,8 @@ compile serial_number_decoder.sv
 compile serial_matrix_decoder.sv
 compile serial_number_encoder.sv
 compile serial_matrix_encoder.sv
+compile sequence_generator.sv
+compile sequence_multiplier.sv
 compile_tb clockGen.v
 compile_tb coordinator_tb.sv
-vsim -L lpm_ver -L altera_mf_ver -do "source test_coordinator_format.do;run 8000ns" -gui work.coordinator_tb
-
+simulate test_coordinator_format coordinator_tb 8000

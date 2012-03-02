@@ -2,8 +2,10 @@
  *
  */
 `timescale 1ns / 1ns
-`define MATRIX_BENCHMARK
+//`define MATRIX_BENCHMARK
 module coordinator_tb();
+`include "types.svi"
+
   wire clk, reset;
 
   reg [7:0] received_byte;
@@ -72,6 +74,18 @@ module coordinator_tb();
 
 `ifdef MATRIX_BENCHMARK
   integer op;
+  ////////////////////////////// PARAMETERS /////////////////////////////////
+
+  // Number of bits in the sequence index.
+  // Increase this parameter to support more than 32 items in a sequence.
+  parameter SEQ_INDEX_BITS = 5;
+
+  // Number of bits in a number.
+  parameter NUMBER_BITS = 37;
+
+  // Highest sequence index to be cached in the matrix result cache.
+  parameter HIGHEST_SEQ_INDEX = 4;
+
 `endif
 
   initial begin
@@ -151,6 +165,18 @@ module coordinator_tb();
     end
     // TODO: verify here.
 
+    // Test sending a gate length
+    #40
+    received_byte  <= "G";
+    received_ready <= 1'b1;
+    #10
+    received_ready <= 1'b0;
+    #20
+    received_byte <= 8'd3;
+    received_ready <= 1'b1;
+    #10
+    received_ready <= 1'b0;
+
 `ifdef MATRIX_BENCHMARK
     // Test the matrix benchmark
     #20
@@ -185,6 +211,13 @@ module coordinator_tb();
     // At this point, the result should be provided...
 
     // TODO: verify here
+`else
+    #20
+    // Send calculate command
+    received_byte  <= "C";
+    received_ready <= 1'b1;
+    #10
+    received_ready <= 1'b0;
 `endif
   end
 endmodule
