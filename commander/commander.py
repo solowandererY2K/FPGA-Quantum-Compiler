@@ -4,6 +4,7 @@ Quantum Compiler command interface.
 
 import sys, os, serial
 from math import sqrt
+from pprint import pprint
 
 # PORTS_TO_TRY contains the list of ports the BlimpBot interface will
 # attempt to connect to.  Each number n corresponds to port COM(n+1),
@@ -70,7 +71,7 @@ class QuantumCompilerInterface(object):
 
   def read_number(self):
     num_bytes = self.ser.read(NUM_BYTES)
-    print [ord(x) for x in num_bytes]
+    #print [ord(x) for x in num_bytes]
     shift = 0
     num = 0
     for byte in num_bytes:
@@ -98,20 +99,20 @@ def test_matrix_benchmark():
     (sqrt2o2, -sqrt2o2),
   )
   mtx_b = (
-    (0, 1),
-    (1, 0)
+    (1, 0),
+    (0, complex(sqrt2o2, sqrt2o2))
   )
   print "Starting matrix benchmark..."
   qci = QuantumCompilerInterface()
   qci.send_command('B')
   print "\nSending matrix A:"
-  print mtx_a
+  pprint(mtx_a)
   qci.send_matrix(mtx_a)
   print "\nSending matrix B:"
-  print mtx_b
+  pprint(mtx_b)
   qci.send_matrix(mtx_b)
   print "\nResult:"
-  print qci.read_matrix()
+  pprint(qci.read_matrix())
 
 if __name__ == '__main__':
   test_matrix_benchmark()
