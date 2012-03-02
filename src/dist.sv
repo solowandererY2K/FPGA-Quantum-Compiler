@@ -2,19 +2,20 @@
 // Begins a calculation when mtx_a_ready and mtx_b_ready are high.
 // Emits matrix value indices, and expects the resulting value to be available
 // on the next clock cycle for multiplication.
-module dist_calc (
-  input reset,
-  input clk,
+`timescale 1ns / 1ns
+module dist_calc(reset, clk, mtx_a, mtx_b, ready, dist2, finished);
+`include "types.svi"
+
+  input reset;
+  input clk;
 
   // Matrices
-  input signed [18:0] mtx_a[0:1][0:1][0:1],
-  input signed [18:0] mtx_b[0:1][0:1][0:1],
-  input ready,
+  input signed [NUMBER_BITS-1:0] mtx_a[0:1][0:1][0:1];
+  input signed [NUMBER_BITS-1:0] mtx_b[0:1][0:1][0:1];
+  input ready;
 
-  output reg [37:0] dist2, // Positive fractional result
-                           // TODO: sign bit left off because result can't be -
-  output reg finished // goes high when calculation is complete
-);
+  output reg [2*(NUMBER_BITS+3):0] dist2; // Positive fractional result
+  output reg finished; // goes high when calculation is complete
 
   localparam REAL = 0, IMAG = 1;
 
@@ -23,35 +24,37 @@ module dist_calc (
   // z22 = ca(cm(cc(M1.z12), M2.z12), cm(cc(M1.z22), M2.z22));
   // return my_cabs(ca(z11, z22));
 
-  wire signed [19:0] mults[0:1][0:1][0:1];
-  wire signed [20:0] sums[0:1][0:1];
-  wire signed [21:0] final_sum[0:1];
-  wire signed [36:0] squares[0:1];
-  wire signed [37:0] result;
+  wire signed [NUMBER_BITS:0]         mults[0:1][0:1][0:1];
+  wire signed [NUMBER_BITS+1:0]       sums[0:1][0:1];
+  wire signed [NUMBER_BITS+2:0]       final_sum[0:1];
+  wire signed [2*(NUMBER_BITS+3)-1:0] squares[0:1];
+  wire signed [2*(NUMBER_BITS+3):0]   result;
 
   genvar i, j, k;
   generate
     for (i = 0; i < 2; i++) begin:I
       for (j = 0; j < 2; j++) begin:J
-        wire signed [18:0] op [0:1];
+        wire signed [NUMBER_BITS-1:0] op[0:1];
         assign op[REAL] = mtx_a[j][i][REAL];
         assign op[IMAG] = -mtx_a[j][i][IMAG];
         complex_fix_mul mul(op, mtx_b[j][i], mults[j][i]);
       end
-      add_ex #(20) addr(mults[0][i][REAL], mults[1][i][REAL], sums[i][REAL]);
-      add_ex #(20) addi(mults[0][i][IMAG], mults[1][i][IMAG], sums[i][IMAG]);
+      add_ex #(NUMBER_BITS+1) addr(mults[0][i][REAL], mults[1][i][REAL],
+                                   sums[i][REAL]);
+      add_ex #(NUMBER_BITS+1) addi(mults[0][i][IMAG], mults[1][i][IMAG],
+                                   sums[i][IMAG]);
     end
-    add_ex #(21)    final_adder_real(sums[0][REAL], sums[1][REAL], final_sum[REAL]);
-    add_ex #(21)    final_adder_imag(sums[0][IMAG], sums[1][IMAG], final_sum[IMAG]);
+    add_ex #(NUMBER_BITS+2) final_adder_real(sums[0][REAL], sums[1][REAL],
+                                             final_sum[REAL]);
+    add_ex #(NUMBER_BITS+2) final_adder_imag(sums[0][IMAG], sums[1][IMAG],
+                                             final_sum[IMAG]);
 
-    // Square the real and imaginary parts, also dividing by 8 to make them
-    // fit into our 19-bit limit.
-    // TODO: use Altera's multiplier megafunction for squaring.
-    fix_mul #(19,37) sq1(final_sum[REAL][21:3], final_sum[REAL][21:3], squares[REAL]);
-    fix_mul #(19,37) sq2(final_sum[IMAG][21:3], final_sum[IMAG][21:3], squares[IMAG]);
+    // Square the real and imaginary parts.
+    squarer sq1(final_sum[REAL], squares[REAL]);
+    squarer sq2(final_sum[IMAG], squares[IMAG]);
 
     // Add the results
-    add_ex #(37)    result_adder(squares[REAL], squares[IMAG], result);
+    add_ex #(80) result_adder(squares[REAL], squares[IMAG], result);
   endgenerate
 
   always @(posedge clk) begin
@@ -59,8 +62,7 @@ module dist_calc (
       finished <= 0;
     end else begin
       finished <= ready;
-
-      dist2 <= result;
+      dist2    <= result;
     end
   end
 endmodule

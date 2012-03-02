@@ -1,0 +1,31 @@
+/**
+ * Types and other global declarations for modules.
+ */
+`ifndef TYPES_SVI
+`define TYPES_SVI
+
+parameter NUMBER_BITS = 37;
+
+// TODO: uncomment and use these types.
+/*
+// Typedefs for matrix distances
+typedef reg  [2*(NUMBER_BITS+3):0] dist_reg;
+typedef [2*(NUMBER_BITS+3):0] dist_t;
+//typedef var  [2*(NUMBER_BITS+3):0] dist_var;
+
+// Fixed point number typedefs
+typedef reg  signed [NUMBER_BITS-1:0] fixed_point_reg;
+typedef signed [NUMBER_BITS-1:0] fixed_point_t;
+//typedef var  signed [NUMBER_BITS-1:0] fixed_point_var;
+
+// Complex number typedefs
+typedef fixed_point_reg  complex_reg[0:1];
+typedef fixed_point_wire complex_wire[0:1];
+//typedef fixed_point_var [0:1] complex_var;
+
+// Complex matrix typedefs
+typedef complex_reg  matrix_reg[0:1][0:1];
+typedef complex_wire matrix_wire[0:1][0:1];
+//typedef complex_var [0:1][0:1] matrix_var;
+*/
+`endif // TYPES_SVI

@@ -1,3 +1,4 @@
+`timescale 1ns / 1ns
 module add_ex(a, b, out);
   parameter BITS_IN = 19;
   input  signed [BITS_IN-1:0] a;
