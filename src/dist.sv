@@ -35,9 +35,17 @@ module dist_calc(reset, clk, mtx_a, mtx_b, ready, dist2, finished);
 
   wire signed [NUMBER_BITS-1:0] ops[0:1][0:1][0:1];
 
-  complex_fix_mul mul(ops    [mtx_j][mtx_i],
-                      mtx_b  [mtx_j][mtx_i],
-                      mults_w);
+  wire mul_available;
+  reg mul_ready;
+  complex_fix_mul_clocked mul(
+    clk,
+    reset,
+    ops    [mtx_j][mtx_i],
+    mtx_b  [mtx_j][mtx_i],
+    mults_w,
+    mul_available,
+    mul_ready
+  );
 
   genvar i, j, k;
   generate
@@ -64,25 +72,41 @@ module dist_calc(reset, clk, mtx_a, mtx_b, ready, dist2, finished);
     add_ex #(80) result_adder(squares[REAL], squares[IMAG], result);
   endgenerate
 
+  reg mul_available_last;
+  wire mul_available_posedge = !mul_available_last && mul_available;
+
+  reg finished_next;
+
   always @(posedge clk) begin
+    mul_ready          <= 0;
+    mul_available_last <= mul_available;
     if (reset) begin
-      finished <= 1;
+      finished      <= 1;
     end else begin
       // TODO: changed finished to available.
       if (finished) begin
         if (ready) begin
-          index    <= 0;
-          finished <= 0;
+          index         <= 0;
+          finished      <= 0;
+          finished_next <= 0;
+          mul_ready     <= 1;
         end
       end else begin
-        if (index == 3'b100) begin
-          index <= 0;
+        if (finished_next) begin
+          dist2    <= result;
           finished <= 1;
-          dist2 <= result;
         end else begin
-          index <= index + 1;
-          mults[mtx_j][mtx_i][0] <= mults_w[0];
-          mults[mtx_j][mtx_i][1] <= mults_w[1];
+          if (mul_available_posedge) begin
+            if (index == 3'b011) begin
+              index         <= 0;
+              finished_next <= 1;
+            end else begin
+              index <= index + 1;
+            end
+            mul_ready              <= 1;
+            mults[mtx_j][mtx_i][0] <= mults_w[0];
+            mults[mtx_j][mtx_i][1] <= mults_w[1];
+          end
         end
       end
     end
