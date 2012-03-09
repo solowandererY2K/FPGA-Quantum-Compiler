@@ -27,10 +27,12 @@
 *.xrf
 *_inst.v
 *run_msim*
+/*.qip
 /db
 /incremental_db
 /simulation/modelsim/gate_work
 /simulation/modelsim/rtl_work
+/src/uart_receiver.v
 /temp
 /uploads
 /work

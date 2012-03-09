@@ -1,0 +1,7 @@
+source test_utils.do
+compile complex_fix_mul_clocked.sv
+compile mult_unit.v
+compile fix_mul.sv
+compile_tb clockGen.v
+compile_tb complex_fix_mul_clocked_tb.sv
+simulate test_complex_fix_mul_clocked_format complex_fix_mul_clocked_tb 1000
