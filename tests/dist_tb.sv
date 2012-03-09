@@ -34,7 +34,7 @@ module dist_tb();
   );
 
   initial begin
-    #50
+    #200
     if (dist2 < 81'd382989073500000000000 && dist2 > 81'd382989073400000000000) begin
       // TODO: improve accuracy.
       $display("Distance squared is %d, which is close enough to %d", dist2,

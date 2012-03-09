@@ -17,29 +17,34 @@ module dist_calc(reset, clk, mtx_a, mtx_b, ready, dist2, finished);
   output reg [2*(NUMBER_BITS+3):0] dist2; // Positive fractional result
   output reg finished; // goes high when calculation is complete
 
-  localparam REAL = 0, IMAG = 1;
-
   // Calculations
   // z11 = ca(cm(cc(M1.z11), M2.z11), cm(cc(M1.z21), M2.z21));
   // z22 = ca(cm(cc(M1.z12), M2.z12), cm(cc(M1.z22), M2.z22));
   // return my_cabs(ca(z11, z22));
 
-  reg  signed [NUMBER_BITS:0]         mults[0:1][0:1][0:1];
+  reg  signed [NUMBER_BITS:0]         mults  [0:1][0:1][0:1];
+  wire signed [NUMBER_BITS:0]         mults_w[0:1];
   wire signed [NUMBER_BITS+1:0]       sums[0:1][0:1];
   wire signed [NUMBER_BITS+2:0]       final_sum[0:1];
   wire signed [2*(NUMBER_BITS+3)-1:0] squares[0:1];
   wire signed [2*(NUMBER_BITS+3):0]   result;
 
   reg [2:0] index;
+  wire mtx_i = index[1];
+  wire mtx_j = index[0];
+
+  wire signed [NUMBER_BITS-1:0] ops[0:1][0:1][0:1];
+
+  complex_fix_mul mul(ops    [mtx_j][mtx_i],
+                      mtx_b  [mtx_j][mtx_i],
+                      mults_w);
 
   genvar i, j, k;
   generate
     for (i = 0; i < 2; i++) begin:I
       for (j = 0; j < 2; j++) begin:J
-        wire signed [NUMBER_BITS-1:0] op[0:1];
-        assign op[REAL] = mtx_a[j][i][REAL];
-        assign op[IMAG] = -mtx_a[j][i][IMAG];
-        complex_fix_mul mul(op, mtx_b[j][i], mults[j][i]);
+        assign ops[j][i][REAL] =  mtx_a[j][i][REAL];
+        assign ops[j][i][IMAG] = -mtx_a[j][i][IMAG];
       end
       add_ex #(NUMBER_BITS+1) addr(mults[0][i][REAL], mults[1][i][REAL],
                                    sums[i][REAL]);
@@ -61,13 +66,24 @@ module dist_calc(reset, clk, mtx_a, mtx_b, ready, dist2, finished);
 
   always @(posedge clk) begin
     if (reset) begin
-      finished <= 0;
+      finished <= 1;
     end else begin
-      if (ready) begin
-        index <= 0;
+      // TODO: changed finished to available.
+      if (finished) begin
+        if (ready) begin
+          index    <= 0;
+          finished <= 0;
+        end
       end else begin
-        finished <= ready;
-        dist2    <= result;
+        if (index == 3'b100) begin
+          index <= 0;
+          finished <= 1;
+          dist2 <= result;
+        end else begin
+          index <= index + 1;
+          mults[mtx_j][mtx_i][0] <= mults_w[0];
+          mults[mtx_j][mtx_i][1] <= mults_w[1];
+        end
       end
     end
   end

@@ -16,8 +16,20 @@ add wave -noupdate -format Literal /dist_tb/d/sums
 add wave -noupdate -format Literal /dist_tb/d/final_sum
 add wave -noupdate -format Literal /dist_tb/d/squares
 add wave -noupdate -format Literal /dist_tb/d/result
+add wave -noupdate -format Literal /dist_tb/d/index
+add wave -noupdate -format Literal /dist_tb/d/mul/x
+add wave -noupdate -format Literal /dist_tb/d/mul/y
+add wave -noupdate -format Literal /dist_tb/d/mul/out
+add wave -noupdate -format Literal /dist_tb/d/mul/a
+add wave -noupdate -format Literal /dist_tb/d/mul/b
+add wave -noupdate -format Literal /dist_tb/d/mul/c
+add wave -noupdate -format Literal /dist_tb/d/mul/d
+add wave -noupdate -format Literal /dist_tb/d/mul/ac
+add wave -noupdate -format Literal /dist_tb/d/mul/bd
+add wave -noupdate -format Literal /dist_tb/d/mul/bc
+add wave -noupdate -format Literal /dist_tb/d/mul/ad
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {0 ps} 0}
+WaveRestoreCursors {{Cursor 1} {3280 ps} 0}
 configure wave -namecolwidth 169
 configure wave -valuecolwidth 267
 configure wave -justifyvalue left
@@ -32,4 +44,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {978036 ps} {994036 ps}
+WaveRestoreZoom {0 ps} {256 ns}
