@@ -1,5 +1,5 @@
 source test_utils.do
-compile complex_fix_mul.sv
+compile complex_fix_mul_clocked.sv
 compile complex_matrix_multiplier.sv
 compile gate_matrix_table.sv
 compile gate_rom.v
@@ -15,4 +15,4 @@ compile sequence_generator.sv
 compile sequence_multiplier.sv
 compile_tb clockGen.v
 compile_tb coordinator_tb.sv
-simulate test_coordinator_format coordinator_tb 10000
+simulate test_coordinator_format coordinator_tb 20000

@@ -68,6 +68,7 @@ module coordinator(
     // Calculation!
     CALCULATING,
     SENDING_RESULT,
+    SENDING_RESULT_SEQ,
     SENDING_FAILURE
 `endif
   } state_t;
@@ -206,6 +207,13 @@ module coordinator(
   wire seq_gen_first;
   wire seq_gen_available;
 
+  wire can_advance, repeat_seq;
+  wire seq_transmit_available = transmit_available &&
+    state == SENDING_RESULT_SEQ;
+  //reg seq_transmit_available_last;
+  //wire seq_transmit_available_posedge =
+  //  !seq_transmit_available_last && seq_transmit_available;
+
   sequence_generator seq_gen(
     .clk(clk),
     .reset(reset),
@@ -214,13 +222,16 @@ module coordinator(
     .max_length(max_gate_length),
     .start(seq_gen_start),
     .complete(seq_gen_complete),
+    .can_advance(can_advance),
+    .repeat_seq(repeat_seq),
 
     // To the Sequence Multiplier
     .seq_index(seq_gen_seq_index),
     .seq_gate(seq_gen_seq_gate),
     .ready(seq_gen_ready),
     .first(seq_gen_first),
-    .available(seq_gen_available)
+    .available((seq_gen_available && state == CALCULATING) |
+               seq_transmit_available)
   );
 
   // Sequence multiplier
@@ -233,7 +244,7 @@ module coordinator(
 
     .seq_index(seq_gen_seq_index),
     .seq_gate(seq_gen_seq_gate),
-    .ready(seq_gen_ready),
+    .ready(seq_gen_ready && state == CALCULATING),
     .first(seq_gen_first),
     .available(seq_gen_available),
 
@@ -261,11 +272,18 @@ module coordinator(
     .dist2(dist2),
     .finished(dst_finished)
   );
-  wire seq_found = (dist2[(NUMBER_BITS)*2:NUMBER_BITS+1] > dist_tolerance)
+  reg last_dst_finished;
+  wire dst_finished_posedge = !last_dst_finished && dst_finished;
+
+  wire seq_found = (dist2[(NUMBER_BITS)*2:NUMBER_BITS+1] >= dist_tolerance)
                    && dst_finished;
+  assign repeat_seq  =  seq_found && dst_finished_posedge;
+  assign can_advance = !seq_found && dst_finished_posedge;
 `endif
 
   always @(posedge clk) begin
+    last_dst_finished <= dst_finished;
+
     if (reset) begin
       last_state <= WAITING;
       state      <= WAITING;
@@ -321,7 +339,6 @@ module coordinator(
 
 `ifndef MATRIX_BENCHMARK
         CALCULATING:
-          // TODO: implement
           if (seq_found) begin
             state <= SENDING_RESULT;
             transmit_byte <= "R";
@@ -336,11 +353,24 @@ module coordinator(
 
         // Send the list of gates in the result.
         SENDING_RESULT: begin
-          // TODO: rethink...
+          transmit_ready <= 1'b0;
           if (transmit_available) begin
-            transmit_ready <= 1'b0;
-            // TODO: send sequence
+            state <= SENDING_RESULT_SEQ;
+            // TODO: rethink...
+            transmit_byte <= {3'd0, seq_gen_seq_gate};
+            transmit_ready <= 1'b1;
+          end
+        end
+
+        SENDING_RESULT_SEQ: begin
+          // TODO: rethink...
+          if (seq_gen_seq_index == 0 && seq_transmit_available) begin
             state <= WAITING;
+          end
+
+          if (seq_transmit_available && seq_gen_ready) begin
+            transmit_byte <= {3'd0, seq_gen_seq_gate};
+            transmit_ready <= 1'b1;
           end
         end
 

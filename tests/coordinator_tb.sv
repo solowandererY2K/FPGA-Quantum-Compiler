@@ -109,33 +109,33 @@ module coordinator_tb();
       $display("FAILED: Green LEDs.");
     end
 
-    // Test the distance decoder.
+    // Test distance decoder -- should yield 268435456
     received_byte  <= "D";
     received_ready <= 1'b1;
     #10
     received_ready <= 1'b0;
     #10
-    received_byte <= 8'b10001010;
+    received_byte <= 8'b00000000;
     received_ready <= 1'b1;
     #10
     received_ready <= 1'b0;
     #10
-    received_byte <= 8'b01010010;
+    received_byte <= 8'b00000000;
     received_ready <= 1'b1;
     #10
     received_ready <= 1'b0;
     #10
-    received_byte <= 8'b00101100;
+    received_byte <= 8'b00000000;
     received_ready <= 1'b1;
     #10
     received_ready <= 1'b0;
     #10
-    received_byte <= 8'b01111000;
+    received_byte <= 8'b00010000;
     received_ready <= 1'b1;
     #10
     received_ready <= 1'b0;
     #10
-    received_byte <= 8'b01110101;
+    received_byte <= 8'b00000000; // first 3 bits should be ignored.
     received_ready <= 1'b1;
     #10
     received_ready <= 1'b0;
@@ -214,6 +214,7 @@ module coordinator_tb();
 `else
     #20
     // Send calculate command
+    transmit_timer <= 3'd0;
     received_byte  <= "C";
     received_ready <= 1'b1;
     #10

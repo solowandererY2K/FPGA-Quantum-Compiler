@@ -14,6 +14,8 @@ module sequence_generator(
   max_length,
   start,
   complete,
+  can_advance,
+  repeat_seq,
 
   // To the Sequence Multiplier
   seq_index,
@@ -25,10 +27,11 @@ module sequence_generator(
 `include "types.svi"
   ///////////////////////////// LOCALPARAMS /////////////////////////////////
 
-  typedef enum reg [1:0] {
+  typedef enum reg [2:0] {
        WAITING,
        WAITING_FOR_SEQ_MULT,
        SENDING,
+       WAITING_FOR_ADVANCE, // TODO: remove this state
        ADVANCING
   } state_t;
 
@@ -51,6 +54,9 @@ module sequence_generator(
                 // instead of multiplying it with a prior gate.
   input available; // high when Sequence Multiplier is ready for the next
                    // gate.
+
+  input can_advance;
+  input repeat_seq;
 
   ///////////////////////////////// CODE ////////////////////////////////////
 
@@ -102,10 +108,12 @@ module sequence_generator(
           if (available_rising_edge ||
               (available_timer == 0 && available)) begin
             if (seq_index == 0) begin
-              state <= ADVANCING;
+              // TODO: advance sequence here instead of waiting.
+              //state <= ADVANCING;
+              state <= WAITING_FOR_ADVANCE;
             end else begin
-              seq_index <= seq_index - 1;
-              ready     <= 1'b1;
+              seq_index       <= seq_index - 1;
+              ready           <= 1'b1;
               available_timer <= 2'd3;
             end
           end else begin
@@ -117,6 +125,22 @@ module sequence_generator(
             // before it was actually available.
             if (available_falling_edge) begin
               ready <= 1'b0;
+            end
+          end
+        end
+
+        WAITING_FOR_ADVANCE: begin
+          if (can_advance) begin
+            state <= ADVANCING;
+          end else begin
+            // Repeat the last sequence, in case a solution was found
+            // and we need to transmit it.
+            if (repeat_seq) begin
+              state <= SENDING;
+              available_timer <= 2'd3;
+              ready <= 1'b1;
+              seq_index <= max_length - 1;
+              complete <= 0;
             end
           end
         end
