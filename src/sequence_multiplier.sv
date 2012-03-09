@@ -95,20 +95,12 @@ module sequence_multiplier(
              MULTIPLYING = 2'd2;
 
 
-  // On reset, indicate that all cache contents are invalid.
-  genvar i;
-  generate
-    for (i = 0; i < HIGHEST_SEQ_INDEX; i = i + 1) begin:I
-      always @(posedge clk) begin
-        if (reset) cache_gates[i] <= HIGHEST_SEQ_INDEX + 1;
-      end
-    end
-  endgenerate
 
   // TODO: refactor out all edge detectors.
   reg multiplier_done_last;
   wire multiplier_done_rising_edge = multiplier_done &&
                                      !multiplier_done_last;
+  integer i;
 
   always @(posedge clk) begin
     multiplier_done_last <= multiplier_done;
@@ -120,6 +112,11 @@ module sequence_multiplier(
       state            <= WAITING;
       available        <= 1'b1;
       done             <= 0;
+
+      // On reset, indicate that all cache contents are invalid.
+      for (i = 0; i < HIGHEST_SEQ_INDEX; i = i + 1) begin
+        cache_gates[i] <= HIGHEST_GATE + 1;
+      end
     end else begin
       case (state)
         WAITING: begin

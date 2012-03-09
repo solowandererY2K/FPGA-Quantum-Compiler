@@ -1,8 +1,8 @@
 /**
  * Types and other global declarations for modules.
  */
-`ifndef TYPES_SVI
-`define TYPES_SVI
+//`ifndef TYPES_SVI
+//`define TYPES_SVI
 
 parameter SIMULATION = 1;
 
@@ -20,6 +20,8 @@ parameter HIGHEST_SEQ_INDEX = 4;
 
 // Highest gate number
 parameter HIGHEST_GATE = SIMULATION ? 2 : 24;
+
+localparam REAL = 0, IMAG = 1;
 
 // TODO: uncomment and use these types.
 /*
@@ -43,4 +45,4 @@ typedef complex_reg  matrix_reg[0:1][0:1];
 typedef complex_wire matrix_wire[0:1][0:1];
 //typedef complex_var [0:1][0:1] matrix_var;
 */
-`endif // TYPES_SVI
+//`endif // TYPES_SVI

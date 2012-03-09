@@ -24,11 +24,13 @@ module dist_calc(reset, clk, mtx_a, mtx_b, ready, dist2, finished);
   // z22 = ca(cm(cc(M1.z12), M2.z12), cm(cc(M1.z22), M2.z22));
   // return my_cabs(ca(z11, z22));
 
-  wire signed [NUMBER_BITS:0]         mults[0:1][0:1][0:1];
+  reg  signed [NUMBER_BITS:0]         mults[0:1][0:1][0:1];
   wire signed [NUMBER_BITS+1:0]       sums[0:1][0:1];
   wire signed [NUMBER_BITS+2:0]       final_sum[0:1];
   wire signed [2*(NUMBER_BITS+3)-1:0] squares[0:1];
   wire signed [2*(NUMBER_BITS+3):0]   result;
+
+  reg [2:0] index;
 
   genvar i, j, k;
   generate
@@ -61,8 +63,12 @@ module dist_calc(reset, clk, mtx_a, mtx_b, ready, dist2, finished);
     if (reset) begin
       finished <= 0;
     end else begin
-      finished <= ready;
-      dist2    <= result;
+      if (ready) begin
+        index <= 0;
+      end else begin
+        finished <= ready;
+        dist2    <= result;
+      end
     end
   end
 endmodule

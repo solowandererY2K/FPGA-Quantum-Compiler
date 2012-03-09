@@ -58,6 +58,7 @@ set_global_assignment -name INCREMENTAL_VECTOR_INPUT_SOURCE complex_fix_mul.vwf
 set_global_assignment -name MISC_FILE "C:/Users/Jeffrey Booth/Projects/UW/Winter 2012/Research/FPGA Compiler/FPGACompiler.dpf"
 set_global_assignment -name LL_ROOT_REGION ON -entity lab4part1 -section_id "Root Region"
 set_global_assignment -name LL_MEMBER_STATE LOCKED -entity lab4part1 -section_id "Root Region"
+set_global_assignment -name SEARCH_PATH "Z:/fpga-compiler/FPGA-Quantum-Compiler/include"
 set_location_assignment PIN_A13 -to GPIO_0[0]
 set_location_assignment PIN_B13 -to GPIO_0[1]
 set_location_assignment PIN_A14 -to GPIO_0[2]
@@ -465,5 +466,6 @@ set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_INVERSION_MASK=00
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_INVERSION_MASK_LENGTH=129" -section_id auto_signaltap_0
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_NODE_CRC_LOWORD=50850" -section_id auto_signaltap_0
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_NODE_CRC_HIWORD=30111" -section_id auto_signaltap_0
-set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 set_global_assignment -name QIP_FILE src/squarer.qip
+
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
